@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es-AR">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,43 +9,124 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Cuello_BiblioTeca_LAB2.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+          integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 </head>
-<body>
+
+<body class="d-flex flex-column min-vh-100">
+    @using System.Security.Claims
+@{
+        var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+        var nombreCompleto = User?.FindFirst("FullName")?.Value ?? User?.Identity?.Name ?? "";
+        var isAdmin = User?.IsInRole("Administrador") ?? false;
+        var isBibliotecario = User?.IsInRole("Bibliotecario") ?? false;
+    }
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Cuello_BiblioTeca_LAB2</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-book"></i> BiblioTeca
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="Libro" asp-action="Index">Libros</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Autor" asp-action="Index">Autores</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Categoria" asp-action="Index">Categorías</a>
+                        </li>
+                        @if (isAuthenticated && (isAdmin || isBibliotecario))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Ejemplar" asp-action="Index">Ejemplares</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Prestamo" asp-action="Index">Préstamos</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Multa" asp-action="Index">Multas</a>
+                            </li>
+                        }
+                        @if (isAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Reserva" asp-action="Index">Reservas</a>
+                            </li>
+                        }
+                        @if (isAuthenticated && isAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Usuario" asp-action="Index">Usuarios</a>
+                            </li>
+                        }
                     </ul>
+                    <ul class="navbar-nav ms-auto">
+                        @if (isAuthenticated)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa-regular fa-user"></i> @nombreCompleto
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="Perfil">Perfil</a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider" />
+                                    </li>
+                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="Logout">Cerrar
+                                        sesión</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Usuario" asp-action="Login">
+                                        <i class="fa-solid fa-sign-in-alt"></i> Iniciar sesión
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Cuello_BiblioTeca_LAB2 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </nav>
+        </header>
+        <div class="container flex-grow-1">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
+
+        <footer class="border-top footer mt-auto">
+            <div class="container text-center">
+                &copy; 2026 - BiblioTeca - LAB2 -
+                <a href="https://github.com/RafaCod0011/Cuello-BiblioTeca-LAB2" target="_blank">
+                    Repositorio GitHub
+                </a>
+            </div>
+        </footer>
+
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
+        @await RenderSectionAsync("Scripts", required: false)
+    </body>
+
 </html>

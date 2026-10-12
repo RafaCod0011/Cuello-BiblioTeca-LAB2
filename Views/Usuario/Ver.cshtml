@@ -1,0 +1,406 @@
+@model Cuello_BiblioTeca_LAB2.Models.Usuario
+
+@{
+    ViewData["Title"] = "Detalles del usuario";
+    var usuarioId = Model?.Id ?? 0;
+    var esAdmin = User.IsInRole("Administrador");
+}
+
+<section id="appVue" class="index-page user-detail-page" v-cloak data-esadmin="@(esAdmin ? "true" : "false")">
+    <header class="index-header user-header">
+        <div>
+            <p class="index-eyebrow">Gestión de perfil</p>
+            <h1>{{ modo_actual == modos.detalle ? 'Mi perfil' : 'Editar perfil' }}</h1>
+            <p class="index-description">Detalles y edición de información del usuario.</p>
+        </div>
+    </header>
+
+    <div class="user-detail-card">
+        <div v-if="modo_actual == modos.detalle" class="user-detail-body">
+            <dl class="details-list user-detail-list">
+                <div class="details-row">
+                    <dt>ID</dt>
+                    <dd>{{ usuario.id }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Nombre</dt>
+                    <dd>{{ usuario.nombre }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Apellido</dt>
+                    <dd>{{ usuario.apellido }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Email</dt>
+                    <dd>{{ usuario.email }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>DNI</dt>
+                    <dd>{{ usuario.dni }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Dirección</dt>
+                    <dd>{{ usuario.direccion || '—' }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Teléfono</dt>
+                    <dd>{{ usuario.telefono || '—' }}</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Avatar</dt>
+                    <dd>
+                        <img v-if="usuario.avatar" :src="usuario.avatar" class="user-avatar-preview" />
+                        <span v-else class="user-empty-avatar">Sin avatar</span>
+                    </dd>
+                </div>
+            </dl>
+            <div class="details-actions user-actions-row">
+                <button class="btn btn-secondary" v-on:click="volverIndex">
+                    <i class="fa-solid fa-arrow-left"></i>Volver
+                </button>
+                <button class="btn btn-primary" v-on:click="activarEdicion">
+                    <i class="fa-solid fa-pen"></i>Editar
+                </button>
+            </div>
+        </div>
+        <div v-if="modo_actual == modos.edicion" class="user-detail-body">
+            <form v-on:submit.prevent="guardarUsuario" class="user-form-grid user-form-edit">
+                <div class="user-field">
+                    <label>Nombre</label>
+                    <input v-model="usuarioEdit.nombre" class="form-control" required />
+                </div>
+                <div class="user-field">
+                    <label>Apellido</label>
+                    <input v-model="usuarioEdit.apellido" class="form-control" required />
+                </div>
+                <div class="user-field user-field-full">
+                    <label>Email</label>
+                    <input v-model="usuarioEdit.email" type="email" class="form-control" required />
+                </div>
+                <div class="user-field">
+                    <label>DNI</label>
+                    <input v-model="usuarioEdit.dni" class="form-control" required />
+                </div>
+                <div class="user-field">
+                    <label>Teléfono</label>
+                    <input v-model="usuarioEdit.telefono" class="form-control" />
+                </div>
+                <div class="user-field user-field-full">
+                    <label>Dirección</label>
+                    <input v-model="usuarioEdit.direccion" class="form-control" />
+                </div>
+
+                <div v-if="esAdmin" class="user-field">
+                    <label>Rol</label>
+                    <select v-model="usuarioEdit.rol" class="form-control">
+                        <option value="1">Administrador</option>
+                        <option value="2">Bibliotecario</option>
+                        <option value="3">Socio</option>
+                    </select>
+                </div>
+                <div v-else class="user-field">
+                    <label>Rol</label>
+                    <input class="form-control" :value="usuarioEdit.rolNombre" disabled />
+                </div>
+
+                <div class="user-field user-field-full">
+                    <label>Avatar actual</label>
+                    <div class="user-avatar-box">
+                        <img v-if="usuarioEdit.avatar" :src="usuarioEdit.avatar" class="user-avatar-preview" />
+                        <span v-else class="user-empty-avatar large">Sin avatar</span>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary user-inline-button"
+                            v-on:click="mostrarModalAvatar">
+                        <i class="fa-solid fa-image me-2" aria-hidden="true"></i>
+                        <span>Cambiar avatar</span>
+                    </button>
+                </div>
+                <div class="user-field user-field-full" v-if="false">
+                    <label>Contraseña</label>
+                    <input type="password" class="form-control" disabled placeholder="No se muestra por seguridad" />
+                </div>
+                <div class="user-field user-field-full">
+                    <button type="button" class="btn btn-outline-primary user-inline-button"
+                            v-on:click.prevent="mostrarModalClave">
+                        <i class="fa-solid fa-key me-2" aria-hidden="true"></i>
+                        <span>Cambiar contraseña</span>
+                    </button>
+                </div>
+                <div class="details-actions user-actions-row user-field-full">
+                    <button type="button" class="btn btn-secondary" v-on:click="cancelarEdicion">
+                        <i class="fa-solid fa-arrow-left"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success user-save-button" :disabled="guardando">
+                        <span v-if="guardando"><i class="fa fa-spinner fa-spin"></i> </span>
+                        <i v-else class="fa-solid fa-save" aria-hidden="true"></i>
+                        <span>Guardar cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CAMBIAR Contraseña -->
+    <div class="modal fade" id="modalClave" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered user-modal" role="document">
+            <div class="modal-content user-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar contraseña</h5>
+                    <button type="button" class="btn-close" aria-label="Close" v-on:click="cerrarModalClave"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Contraseña actual</label>
+                        <input type="password" class="form-control" v-model="cambioClave.claveVieja" />
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Nueva contraseña</label>
+                        <input type="password" class="form-control" v-model="cambioClave.claveNueva" />
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Confirmar nueva contraseña</label>
+                        <input type="password" class="form-control" v-model="cambioClave.claveRepeticion" />
+                    </div>
+                    <div v-if="errorClave" class="alert alert-danger mb-0">{{ errorClave }}</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary"
+                            v-on:click="cerrarModalClave">Cancelar</button>
+                    <button type="button" class="btn btn-success" v-on:click="guardarClave" :disabled="guardandoClave">
+                        <span v-if="guardandoClave"><i class="fa fa-spinner fa-spin"></i> </span>
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAMBIAR Avatar -->
+    <div class="modal fade" id="modalAvatar" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered user-modal" role="document">
+            <div class="modal-content user-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar avatar</h5>
+                    <button type="button" class="btn-close" aria-label="Close" v-on:click="cerrarModalAvatar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Seleccionar imagen</label>
+                        <input type="file" class="form-control" accept="image/*" v-on:change="seleccionarAvatar" />
+                    </div>
+                    <div v-if="avatarPreview" class="mt-2 user-preview-zone">
+                        <img :src="avatarPreview" class="user-avatar-preview" />
+                    </div>
+                    <div v-if="errorAvatar" class="alert alert-danger mb-0">{{ errorAvatar }}</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary"
+                            v-on:click="cerrarModalAvatar">Cancelar</button>
+                    <button type="button" class="btn btn-success" v-on:click="guardarAvatar"
+                            :disabled="guardandoAvatar">
+                        <span v-if="guardandoAvatar"><i class="fa fa-spinner fa-spin"></i> </span>
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script>
+        $(document).ready(function () {
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        modos: { detalle: 1, edicion: 2 },
+                        modo_actual: 1,
+                        esAdmin: false, // data-esadmin
+                        usuario: { id: 0, nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', rol: 1, rolNombre: '', avatar: '' },
+                        usuarioEdit: { id: 0, nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', rol: 1, avatar: '' },
+                        guardando: false,
+                        // Cambio de clave
+                        cambioClave: { claveVieja: '', claveNueva: '', claveRepeticion: '' },
+                        guardandoClave: false,
+                        errorClave: '',
+                        // Cambio de avatar
+                        avatarFile: null,
+                        avatarPreview: '',
+                        guardandoAvatar: false,
+                        errorAvatar: ''
+                    };
+                },
+                methods: {
+                    cargarUsuario() {
+                        const id = @usuarioId;
+                        $.ajax({
+                            url: `@Url.Action("ObtenerPorId", "Usuario")/${id}`,
+                            method: 'GET',
+                            dataType: 'json',
+                            success: (data) => {
+                                this.usuario = data;
+                                this.usuarioEdit = { ...data };
+                            },
+                            error: (xhr, status, error) => {
+                                console.error('Error al cargar usuario:', error);
+                                alert('Error al cargar los datos del usuario');
+                            }
+                        });
+                    },
+                    activarEdicion() {
+                        this.usuarioEdit = { ...this.usuario };
+                        this.modo_actual = this.modos.edicion;
+                    },
+                    cancelarEdicion() {
+                        this.modo_actual = this.modos.detalle;
+                        this.usuarioEdit = { ...this.usuario };
+                    },
+                    guardarUsuario() {
+                        this.guardando = true;
+                        const payload = { ...this.usuarioEdit };
+                        if (!this.esAdmin) {
+                            delete payload.rol;
+                        }
+
+                        if (!payload.clave || payload.clave.trim() === '') {
+                            delete payload.clave;
+                        }
+                        $.ajax({
+                            url: '@Url.Action("Editar", "Usuario")',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(payload),
+                            success: (data) => {
+                                if (data.success) {
+                                    alert('Usuario actualizado correctamente');
+                                    this.cargarUsuario(); // recargar datos
+                                    this.modo_actual = this.modos.detalle;
+                                }
+                            },
+                            error: (xhr, status, error) => {
+                                console.error('Error al guardar:', error);
+                                const errorMsg = xhr.responseJSON?.error || 'Error al guardar los cambios';
+                                alert(errorMsg);
+                            },
+                            complete: () => {
+                                this.guardando = false;
+                            }
+                        });
+                    },
+                    volverIndex() {
+                        window.location.href = '@Url.Action("Index", "Home")';
+                    },
+                    // Cambio de clave
+                    mostrarModalClave() {
+                        this.errorClave = '';
+                        this.cambioClave = { claveVieja: '', claveNueva: '', claveRepeticion: '' };
+                        $('#modalClave').modal('show');
+                    },
+                    cerrarModalClave() {
+                        $('#modalClave').modal('hide');
+                    },
+                    guardarClave() {
+                        this.errorClave = '';
+                        if (this.cambioClave.claveNueva !== this.cambioClave.claveRepeticion) {
+                            this.errorClave = 'Las contraseñas no coinciden';
+                            return;
+                        }
+                        if (this.cambioClave.claveNueva.length < 3) {
+                            this.errorClave = 'La contraseña debe tener al menos 3 caracteres';
+                            return;
+                        }
+                        const payload = {
+                            id: this.usuario.id,
+                            claveVieja: this.cambioClave.claveVieja,
+                            claveNueva: this.cambioClave.claveNueva,
+                            claveRepeticion: this.cambioClave.claveRepeticion
+                        };
+                        this.guardandoClave = true;
+                        $.ajax({
+                            url: '@Url.Action("CambiarClave", "Usuario")',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(payload),
+                            success: (data) => {
+                                if (data.success) {
+                                    alert('Contraseña cambiada correctamente');
+                                    this.cerrarModalClave();
+                                    this.cargarUsuario(); // recargar
+                                }
+                            },
+                            error: (xhr, status, error) => {
+                                console.error('Error al cambiar clave:', error);
+                                this.errorClave = xhr.responseJSON?.error || 'Error al cambiar la contraseña';
+                            },
+                            complete: () => {
+                                this.guardandoClave = false;
+                            }
+                        });
+                    },
+                    // Cambio de avatar
+                    seleccionarAvatar(event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            this.avatarFile = file;
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                this.avatarPreview = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    },
+                    mostrarModalAvatar() {
+                        this.avatarFile = null;
+                        this.avatarPreview = '';
+                        this.errorAvatar = '';
+                        $('#modalAvatar').modal('show');
+                    },
+                    cerrarModalAvatar() {
+                        $('#modalAvatar').modal('hide');
+                    },
+                    guardarAvatar() {
+                        if (!this.avatarFile) {
+                            this.errorAvatar = 'Seleccione una imagen';
+                            return;
+                        }
+                        const formData = new FormData();
+                        formData.append('avatar', this.avatarFile);
+                        this.guardandoAvatar = true;
+                        $.ajax({
+                            url: `@Url.Action("CambiarAvatar", "Usuario")?id=${this.usuario.id}`,
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: (data) => {
+                                if (data.success) {
+                                    alert('Avatar actualizado correctamente');
+                                    this.usuario.avatar = data.avatarUrl;
+                                    this.usuarioEdit.avatar = data.avatarUrl;
+                                    this.cerrarModalAvatar();
+                                    this.cargarUsuario();
+                                }
+                            },
+                            error: (xhr, status, error) => {
+                                console.error('Error al subir avatar:', error);
+                                this.errorAvatar = xhr.responseJSON?.error || 'Error al subir la imagen';
+                            },
+                            complete: () => {
+                                this.guardandoAvatar = false;
+                            }
+                        });
+                    }
+                },
+                mounted() {
+                    // Leer el atributo data-esadmin del contenedor principal
+                    const el = document.getElementById('appVue');
+                    if (el) {
+                        this.esAdmin = el.dataset.esadmin === 'true';
+                    }
+                    this.cargarUsuario();
+                }
+            }).mount('#appVue');
+        });
+    </script>
+}

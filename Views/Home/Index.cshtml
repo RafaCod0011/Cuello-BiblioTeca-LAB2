@@ -1,8 +1,127 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="dashboard-header text-center">
+    <h1>Panel Principal</h1>
+    <p class="text-muted">Sistema de Gestión de Biblioteca</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-6 col-md-4 col-lg-3">
+        <a asp-controller="Libro" asp-action="Index" class="dashboard-card">
+            <div class="dashboard-card-icon icon-purple">
+                <i class="fa-solid fa-book"></i>
+            </div>
+            <h5>Libros</h5>
+            <p>Catálogo de libros</p>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <a asp-controller="Autor" asp-action="Index" class="dashboard-card">
+            <div class="dashboard-card-icon icon-blue">
+                <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <h5>Autores</h5>
+            <p>Administración de autores</p>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+        <a asp-controller="Categoria" asp-action="Index" class="dashboard-card">
+            <div class="dashboard-card-icon icon-teal">
+                <i class="fa-solid fa-tags"></i>
+            </div>
+            <h5>Categorías</h5>
+            <p>Géneros y clasificaciones</p>
+        </a>
+    </div>
+
+    @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+    {
+        <div class="col-6 col-md-4 col-lg-3">
+            <a asp-controller="Ejemplar" asp-action="Index" class="dashboard-card">
+                <div class="dashboard-card-icon icon-green">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h5>Ejemplares</h5>
+                <p>Copias físicas del catálogo</p>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card">
+                <div class="dashboard-card-icon icon-orange">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <h5>Préstamos</h5>
+                <p>Gestión de alquileres</p>
+                <div class="dashboard-card-actions">
+                    <a asp-controller="Prestamo" asp-action="Create" class="dashboard-action dashboard-action-link">
+                        <i class="fa-solid fa-plus"></i>
+                        Nuevo préstamo
+                    </a>
+                    <a asp-controller="Prestamo" asp-action="Index" class="dashboard-action dashboard-action-link">
+                        <i class="fa-solid fa-list"></i>
+                        Ver todos
+                    </a>
+                    <a asp-controller="Prestamo" asp-action="Vencidos" class="dashboard-action dashboard-action-link">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Vencidos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card">
+                <div class="dashboard-card-icon icon-red">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <h5>Multas</h5>
+                <p>Penalizaciones por atraso</p>
+                <div class="dashboard-card-actions">
+                    <a asp-controller="Multa" asp-action="Index" class="dashboard-action dashboard-action-link">
+                        <i class="fa-solid fa-list"></i>
+                        Ver todas
+                    </a>
+                    <a asp-controller="Multa" asp-action="Pendientes" class="dashboard-action dashboard-action-link">
+                        <i class="fa-solid fa-clock"></i>
+                        Pendientes
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+    }
+    
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="dashboard-card">
+            <div class="dashboard-card-icon icon-purple">
+                <i class="fa-solid fa-bookmark"></i>
+            </div>
+            <h5>Reservas</h5>
+            <p>Listas de espera</p>
+            <div class="dashboard-card-actions">
+                <a asp-controller="Reserva" asp-action="Index" class="dashboard-action dashboard-action-link">
+                    <i class="fa-solid fa-list"></i>
+                    Ver todas
+                </a>
+                <a asp-controller="Reserva" asp-action="Pendientes" class="dashboard-action dashboard-action-link">
+                    <i class="fa-solid fa-clock"></i>
+                    Pendientes
+                </a>
+            </div>
+        </div>
+    </div>
+    @if (User.IsInRole("Administrador"))
+    {
+        <div class="col-6 col-md-4 col-lg-3">
+            <a asp-controller="Usuario" asp-action="Index" class="dashboard-card">
+                <div class="dashboard-card-icon icon-red">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h5>Usuarios</h5>
+                <p>Administración del sistema</p>
+            </a>
+        </div>
+    }
 </div>

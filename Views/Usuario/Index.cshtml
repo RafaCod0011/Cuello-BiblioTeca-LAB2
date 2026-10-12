@@ -1,0 +1,770 @@
+@{
+    ViewData["Title"] = "Usuarios";
+    var Pagina = ViewBag.Pagina ?? 1;
+    var TotalPaginas = ViewBag.TotalPaginas ?? 1;
+}
+
+<section id="appVue" class="index-page user-page" v-cloak>
+    <header class="index-header user-header">
+        <div>
+            <p class="index-eyebrow">Gestión de usuarios</p>
+            <h1>Usuarios</h1>
+            <p class="index-description">Administre los usuarios del sistema y su perfil.</p>
+        </div>
+        <button class="btn btn-success index-create-button" title="Nuevo usuario" v-on:click="mostrarModalCrear"
+                v-if="modo_actual == modos.listado">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            <span>Nuevo usuario</span>
+        </button>
+    </header>
+
+    <div v-if="modo_actual == modos.listado" class="user-listing">
+        <div class="index-table-wrapper user-table-wrapper">
+            <table class="table index-table user-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Avatar</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="u in usuarios" :key="u.id">
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.nombre }}</td>
+                        <td>{{ u.apellido }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            <span class="badge rounded-pill"
+                                  :class="u.rol == 1 ? 'bg-danger' : (u.rol == 2 ? 'bg-warning text-dark' : 'bg-primary')">
+                                {{ u.rolNombre }}
+                            </span>
+                        </td>
+                        <td>
+                            <img v-if="u.avatar" :src="u.avatar" width="40" height="40" class="user-avatar-mini" />
+                            <span v-else class="user-empty-avatar">Sin avatar</span>
+                        </td>
+                        <td>
+                            <div class="index-actions" role="group">
+                                <button class="btn btn-info btn-sm" title="Ver" v-on:click="verUsuario(u.id)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm" title="Editar" v-on:click="editarUsuario(u.id)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" title="Eliminar"
+                                        v-on:click="mostrarModalEliminar(u)">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Paginación -->
+        <nav aria-label="Paginación de usuarios" v-if="totalPaginas > 1" class="mt-3">
+            <ul class="pagination justify-content-center">
+                <!-- Botón Anterior -->
+                <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+                    <a class="page-link" href="#" @@click.prevent="cambiarPagina(paginaActual - 1)">
+                        <i class="fa-solid fa-angles-left"></i>
+                    </a>
+                </li>
+
+                <!-- Números de página -->
+                <li class="page-item" v-for="p in rangoPaginas" :key="p" :class="{ active: p === paginaActual }">
+                    <a class="page-link" href="#" @@click.prevent="cambiarPagina(p)">{{ p }}</a>
+                </li>
+
+                <!-- Botón Siguiente -->
+                <li class="page-item" :class="{ disabled: paginaActual === totalPaginas }">
+                    <a class="page-link" href="#" @@click.prevent="cambiarPagina(paginaActual + 1)">
+                        <i class="fa-solid fa-angles-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div v-if="modo_actual == modos.detalle || modo_actual == modos.edicion" class="user-panel-shell">
+        <div class="details-card user-card">
+            <header class="edit-card-header user-card-header">
+                <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+                <div>
+                    <p class="edit-eyebrow">{{ modo_actual == modos.detalle ? 'Detalle' : 'Edición' }}</p>
+                    <h1>{{ modo_actual == modos.detalle ? 'Detalles del usuario' : 'Editar usuario' }}</h1>
+                    <p class="edit-description">{{ modo_actual == modos.detalle ? 'Consulte la información del usuario.'
+                        : 'Modifique los datos del usuario seleccionado.' }}</p>
+                    </div>
+                </header>
+
+                <div class="details-layout user-form-layout">
+                    <form v-on:submit.prevent="guardarUsuario" v-if="modo_actual == modos.edicion" class="user-form-grid">
+                        <div class="user-field">
+                            <label>Nombre</label>
+                            <input v-model="usuarioEdit.nombre" class="form-control" required />
+                        </div>
+                        <div class="user-field">
+                            <label>Apellido</label>
+                            <input v-model="usuarioEdit.apellido" class="form-control" required />
+                        </div>
+                        <div class="user-field user-field-full">
+                            <label>Email</label>
+                            <input v-model="usuarioEdit.email" type="email" class="form-control" required />
+                        </div>
+                        <div class="user-field">
+                            <label>DNI</label>
+                            <input v-model="usuarioEdit.dni" class="form-control" required />
+                        </div>
+                        <div class="user-field">
+                            <label>Teléfono</label>
+                            <input v-model="usuarioEdit.telefono" class="form-control" />
+                        </div>
+                        <div class="user-field user-field-full">
+                            <label>Dirección</label>
+                            <input v-model="usuarioEdit.direccion" class="form-control" />
+                        </div>
+                        <div class="user-field">
+                            <label>Rol</label>
+                            <select v-model="usuarioEdit.rol" class="form-control">
+                                <option value="1">Administrador</option>
+                                <option value="2">Bibliotecario</option>
+                                <option value="3">Socio</option>
+                            </select>
+                        </div>
+                        <div class="user-field user-field-full">
+                            <label>Avatar</label>
+                            <div class="user-avatar-box">
+                                <img v-if="usuarioEdit.avatar" :src="usuarioEdit.avatar" class="user-avatar-preview" />
+                                <span v-else class="user-empty-avatar large">Sin avatar</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary user-inline-button"
+                                    v-on:click="mostrarModalAvatar">
+                                <i class="fa-solid fa-image me-2" aria-hidden="true"></i>
+                                <span>Cambiar avatar</span>
+                            </button>
+                        </div>
+                        <div class="user-field user-field-full">
+                            <button type="button" class="btn btn-outline-primary user-inline-button"
+                                    v-on:click.prevent="mostrarModalClave">
+                                <i class="fa-solid fa-key me-2" aria-hidden="true"></i>
+                                <span>Cambiar contraseña</span>
+                            </button>
+                        </div>
+                        <div class="details-actions user-actions-row user-field-full">
+                            <button type="button" class="btn btn-secondary" v-on:click="cancelarEdicion">
+                                <i class="fa-solid fa-arrow-left"></i>Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-success user-save-button" :disabled="guardando">
+                                <span v-if="guardando"><i class="fa fa-spinner fa-spin"></i> </span>
+                                <i v-else class="fa-solid fa-save" aria-hidden="true"></i>
+                                <span>Guardar cambios</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div v-if="modo_actual == modos.detalle" class="user-detail-grid">
+                        <dl class="details-list">
+                            <div class="details-row">
+                                <dt>ID</dt>
+                                <dd>{{ usuarioSeleccionado.id }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>Nombre</dt>
+                                <dd>{{ usuarioSeleccionado.nombre }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>Apellido</dt>
+                                <dd>{{ usuarioSeleccionado.apellido }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>Email</dt>
+                                <dd>{{ usuarioSeleccionado.email }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>DNI</dt>
+                                <dd>{{ usuarioSeleccionado.dni }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>Teléfono</dt>
+                                <dd>{{ usuarioSeleccionado.telefono || '—' }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>Dirección</dt>
+                                <dd>{{ usuarioSeleccionado.direccion || '—' }}</dd>
+                            </div>
+                            <div class="details-row">
+                                <dt>Avatar</dt>
+                                <dd>
+                                    <img v-if="usuarioSeleccionado.avatar" :src="usuarioSeleccionado.avatar"
+                                         class="user-avatar-preview" />
+                                    <span v-else class="user-empty-avatar">Sin avatar</span>
+                                </dd>
+                            </div>
+                        </dl>
+                        <div class="details-actions user-actions-row">
+                            <button class="btn btn-secondary" v-on:click="volverListado">
+                                <i class="fa-solid fa-arrow-left"></i>Volver
+                            </button>
+                            <button class="btn btn-primary" v-on:click="editarUsuario(usuarioSeleccionado.id)">
+                                <i class="fa-solid fa-pen"></i>Editar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CREAR usuario -->
+        <div class="modal fade" id="modalCrearUsuario" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered user-modal" role="document">
+                <div class="modal-content user-modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nuevo usuario</h5>
+                        <button type="button" class="btn-close" aria-label="Close" v-on:click="cerrarModalCrear"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form v-on:submit.prevent="guardarNuevoUsuario" class="user-form-grid">
+                            <div class="user-field">
+                                <label>Nombre</label>
+                                <input v-model="nuevoUsuario.nombre" class="form-control" required />
+                            </div>
+                            <div class="user-field">
+                                <label>Apellido</label>
+                                <input v-model="nuevoUsuario.apellido" class="form-control" required />
+                            </div>
+                            <div class="user-field user-field-full">
+                                <label>Email</label>
+                                <input v-model="nuevoUsuario.email" type="email" class="form-control" required />
+                            </div>
+                            <div class="user-field">
+                                <label>DNI</label>
+                                <input v-model="nuevoUsuario.dni" class="form-control" required />
+                            </div>
+                            <div class="user-field">
+                                <label>Teléfono</label>
+                                <input v-model="nuevoUsuario.telefono" class="form-control" />
+                            </div>
+                            <div class="user-field user-field-full">
+                                <label>Dirección</label>
+                                <input v-model="nuevoUsuario.direccion" class="form-control" />
+                            </div>
+                            <div class="user-field">
+                                <label>Contraseña</label>
+                                <input v-model="nuevoUsuario.clave" type="password" class="form-control" required />
+                            </div>
+                            <div class="user-field">
+                                <label>Rol</label>
+                                <select v-model="nuevoUsuario.rol" class="form-control">
+                                    <option value="1">Administrador</option>
+                                    <option value="2">Bibliotecario</option>
+                                    <option value="3">Socio</option>
+                                </select>
+                            </div>
+                            <div class="user-field user-field-full">
+                                <label>Avatar (opcional)</label>
+                                <input type="file" class="form-control" accept="image/*"
+                                       v-on:change="seleccionarAvatarNuevo" />
+                            </div>
+                            <div v-if="previewNuevoAvatar" class="user-field user-field-full">
+                                <img :src="previewNuevoAvatar" class="user-avatar-preview" />
+                            </div>
+                            <div v-if="errorCrear" class="alert alert-danger user-field-full">{{ errorCrear }}</div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                                v-on:click="cerrarModalCrear">Cancelar</button>
+                        <button type="button" class="btn btn-success" v-on:click="guardarNuevoUsuario"
+                                :disabled="guardandoCrear">
+                            <span v-if="guardandoCrear"><i class="fa fa-spinner fa-spin"></i> </span>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ELIMINAR usuario -->
+        <div class="modal fade" id="modalEliminarUsuario" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered user-modal" role="document">
+                <div class="modal-content user-modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Eliminar usuario</h5>
+                        <button type="button" class="btn-close" aria-label="Close"
+                                v-on:click="cerrarModalEliminar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Está seguro de eliminar al usuario <strong>{{ usuarioAEliminar.nombre }} {{
+                            usuarioAEliminar.apellido }}</strong>?</p>
+                            <dl class="details-list">
+                                <div class="details-row">
+                                    <dt>ID</dt>
+                                    <dd>{{ usuarioAEliminar.id }}</dd>
+                                </div>
+                                <div class="details-row">
+                                    <dt>Email</dt>
+                                    <dd>{{ usuarioAEliminar.email }}</dd>
+                                </div>
+                                <div class="details-row">
+                                    <dt>Rol</dt>
+                                    <dd>{{ usuarioAEliminar.rolNombre }}</dd>
+                                </div>
+                                <div class="details-row">
+                                    <dt>Avatar</dt>
+                                    <dd>
+                                        <img v-if="usuarioAEliminar.avatar" :src="usuarioAEliminar.avatar" width="50"
+                                             height="50" class="rounded-circle" />
+                                        <span v-else>Sin avatar</span>
+                                    </dd>
+                                </div>
+                            </dl>
+                            <div v-if="errorEliminar" class="alert alert-danger">{{ errorEliminar }}</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    v-on:click="cerrarModalEliminar">Cancelar</button>
+                            <button type="button" class="btn btn-danger" v-on:click="confirmarEliminar"
+                                    :disabled="guardandoEliminar">
+                                <span v-if="guardandoEliminar"><i class="fa fa-spinner fa-spin"></i> </span>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cambiar contraseña -->
+            <div class="modal fade" id="modalClave" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered user-modal" role="document">
+                    <div class="modal-content user-modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Cambiar contraseña</h5>
+                            <button type="button" class="btn-close" aria-label="Close" v-on:click="cerrarModalClave"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <label>Contraseña actual</label>
+                                <input type="password" class="form-control" v-model="cambioClave.claveVieja" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Nueva contraseña</label>
+                                <input type="password" class="form-control" v-model="cambioClave.claveNueva" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>Confirmar nueva contraseña</label>
+                                <input type="password" class="form-control" v-model="cambioClave.claveRepeticion" />
+                            </div>
+                            <div v-if="errorClave" class="alert alert-danger mb-0">{{ errorClave }}</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    v-on:click="cerrarModalClave">Cancelar</button>
+                            <button type="button" class="btn btn-success" v-on:click="guardarClave" :disabled="guardandoClave">
+                                <span v-if="guardandoClave"><i class="fa fa-spinner fa-spin"></i> </span>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cambiar avatar -->
+            <div class="modal fade" id="modalAvatar" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered user-modal" role="document">
+                    <div class="modal-content user-modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Cambiar avatar</h5>
+                            <button type="button" class="btn-close" aria-label="Close" v-on:click="cerrarModalAvatar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <label>Seleccionar imagen</label>
+                                <input type="file" class="form-control" accept="image/*" v-on:change="seleccionarAvatar" />
+                            </div>
+                            <div v-if="avatarPreview" class="mt-2 user-preview-zone">
+                                <img :src="avatarPreview" class="user-avatar-preview" />
+                            </div>
+                            <div v-if="errorAvatar" class="alert alert-danger mb-0">{{ errorAvatar }}</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    v-on:click="cerrarModalAvatar">Cancelar</button>
+                            <button type="button" class="btn btn-success" v-on:click="guardarAvatar"
+                                    :disabled="guardandoAvatar">
+                                <span v-if="guardandoAvatar"><i class="fa fa-spinner fa-spin"></i> </span>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        @section Scripts {
+            <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+            <script>
+                $(document).ready(function () {
+                    const app = Vue.createApp({
+                        data() {
+                            return {
+                                modos: { listado: 1, detalle: 2, edicion: 3 },
+                                modo_actual: 1,
+                                usuarios: [],
+                                usuarioSeleccionado: { id: 0, nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', rol: 1, rolNombre: '', avatar: '' },
+                                usuarioEdit: { id: 0, nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', rol: 1, avatar: '' },
+                                guardando: false,
+                                paginaActual: 1,
+                                totalPaginas: 1,
+                                totalRegistros: 0,
+                                tamanoPagina: 5,
+
+                                // ---- Nuevo usuario ----
+                                nuevoUsuario: { nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', clave: '', rol: 3 },
+                                avatarNuevoFile: null,
+                                previewNuevoAvatar: '',
+                                guardandoCrear: false,
+                                errorCrear: '',
+
+                                // ---- Eliminar usuario ----
+                                usuarioAEliminar: { id: 0, nombre: '', apellido: '', dni: '', email: '', rol: 1, rolNombre: '', avatar: '' },
+                                guardandoEliminar: false,
+                                errorEliminar: '',
+
+                                // ---- Cambio de clave ----
+                                cambioClave: { claveVieja: '', claveNueva: '', claveRepeticion: '' },
+                                guardandoClave: false,
+                                errorClave: '',
+
+                                // ---- Cambio de avatar ----
+                                avatarFile: null,
+                                avatarPreview: '',
+                                guardandoAvatar: false,
+                                errorAvatar: ''
+                            };
+                        },
+                        computed: {
+                            rangoPaginas() {
+                                const total = this.totalPaginas;
+                                const actual = this.paginaActual;
+                                const rango = 5; // máximo de números visibles
+                                let desde = Math.max(1, Math.min(actual - 2, total - 4));
+                                let hasta = Math.min(total, desde + rango - 1);
+                                const paginas = [];
+                                for (let i = desde; i <= hasta; i++) paginas.push(i);
+                                return paginas;
+                            }
+                        },
+                        methods: {
+                            cargarUsuarios() {
+                                $.ajax({
+                                    url: '@Url.Action("ObtenerTodos", "Usuario")',
+                                    method: 'GET',
+                                    data: {
+                                        pagina: this.paginaActual,
+                                        tamano: this.tamanoPagina
+                                    },
+                                    dataType: 'json',
+                                    success: (data) => {
+                                        this.usuarios = data.datos;
+                                        this.paginaActual = data.paginaActual;
+                                        this.totalPaginas = data.totalPaginas;
+                                        this.totalRegistros = data.totalRegistros;
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al cargar usuarios:', error);
+                                    }
+                                });
+                            },
+                            cambiarPagina(p) {
+                                if (p < 1 || p > this.totalPaginas || p === this.paginaActual) return;
+                                this.paginaActual = p;
+                                this.cargarUsuarios();
+                            },
+                            verUsuario(id) {
+                                $.ajax({
+                                    url: `@Url.Action("ObtenerPorId", "Usuario")/${id}`,
+                                    method: 'GET',
+                                    dataType: 'json',
+                                    success: (data) => {
+                                        this.usuarioSeleccionado = data;
+                                        this.modo_actual = this.modos.detalle;
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al obtener usuario:', error);
+                                        alert('Error al cargar los detalles del usuario');
+                                    }
+                                });
+                            },
+                            editarUsuario(id) {
+                                $.ajax({
+                                    url: `@Url.Action("ObtenerPorId", "Usuario")/${id}`,
+                                    method: 'GET',
+                                    dataType: 'json',
+                                    success: (data) => {
+                                        this.usuarioEdit = { ...data };
+                                        this.modo_actual = this.modos.edicion;
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al obtener usuario:', error);
+                                        alert('Error al cargar los datos del usuario');
+                                    }
+                                });
+                            },
+                            guardarUsuario() {
+                                this.guardando = true;
+                                const payload = { ...this.usuarioEdit };
+                                if (!payload.clave || payload.clave.trim() === '') {
+                                    delete payload.clave;
+                                }
+                                $.ajax({
+                                    url: '@Url.Action("Editar", "Usuario")',
+                                    method: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(payload),
+                                    success: (data) => {
+                                        if (data.success) {
+                                            alert('Usuario actualizado correctamente');
+                                            this.cargarUsuarios();
+                                            this.modo_actual = this.modos.listado;
+                                        }
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al guardar:', error);
+                                        const errorMsg = xhr.responseJSON?.error || 'Error al guardar los cambios';
+                                        alert(errorMsg);
+                                    },
+                                    complete: () => {
+                                        this.guardando = false;
+                                    }
+                                });
+                            },
+                            cancelarEdicion() {
+                                this.modo_actual = this.modos.listado;
+                                this.usuarioEdit = { id: 0, nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', rol: 1, avatar: '' };
+                            },
+                            volverListado() {
+                                this.modo_actual = this.modos.listado;
+                                this.usuarioSeleccionado = { id: 0, nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', rol: 1, rolNombre: '', avatar: '' };
+                            },
+
+                            // ---------- CREAR usuario (modal) ----------
+                            mostrarModalCrear() {
+                                this.nuevoUsuario = { nombre: '', apellido: '', dni: '', direccion: '', telefono: '', email: '', clave: '', rol: 3 };
+                                this.avatarNuevoFile = null;
+                                this.previewNuevoAvatar = '';
+                                this.errorCrear = '';
+                                $('#modalCrearUsuario').modal('show');
+                            },
+                            cerrarModalCrear() {
+                                $('#modalCrearUsuario').modal('hide');
+                            },
+                            seleccionarAvatarNuevo(event) {
+                                const file = event.target.files[0];
+                                if (file) {
+                                    this.avatarNuevoFile = file;
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        this.previewNuevoAvatar = e.target.result;
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            },
+                            guardarNuevoUsuario() {
+                                this.errorCrear = '';
+                                if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido ||
+                                    !this.nuevoUsuario.dni || !this.nuevoUsuario.email || !this.nuevoUsuario.clave) {
+                                    this.errorCrear = 'Complete los campos obligatorios (nombre, apellido, DNI, email y clave).';
+                                    return;
+                                }
+                                this.guardandoCrear = true;
+                                const formData = new FormData();
+                                formData.append('Nombre', this.nuevoUsuario.nombre);
+                                formData.append('Apellido', this.nuevoUsuario.apellido);
+                                formData.append('Dni', this.nuevoUsuario.dni);
+                                formData.append('Direccion', this.nuevoUsuario.direccion || '');
+                                formData.append('Telefono', this.nuevoUsuario.telefono || '');
+                                formData.append('Email', this.nuevoUsuario.email);
+                                formData.append('Clave', this.nuevoUsuario.clave);
+                                formData.append('Rol', this.nuevoUsuario.rol);
+                                if (this.avatarNuevoFile) {
+                                    formData.append('avatarFile', this.avatarNuevoFile);
+                                }
+
+                                $.ajax({
+                                    url: '@Url.Action("Create", "Usuario")',
+                                    method: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: (data) => {
+                                        if (data.success) {
+                                            this.cerrarModalCrear();
+                                            this.paginaActual = 1;
+                                            this.cargarUsuarios();
+                                        } else {
+                                            this.errorCrear = data.error || 'Error al crear el usuario';
+                                        }
+                                    },
+                                    error: (xhr) => {
+                                        this.errorCrear = xhr.responseJSON?.error || 'Error al crear el usuario';
+                                    },
+                                    complete: () => {
+                                        this.guardandoCrear = false;
+                                    }
+                                });
+                            },
+
+                            // ---------- ELIMINAR usuario (modal) ----------
+                            mostrarModalEliminar(usuario) {
+                                this.usuarioAEliminar = { ...usuario };
+                                this.errorEliminar = '';
+                                $('#modalEliminarUsuario').modal('show');
+                            },
+                            cerrarModalEliminar() {
+                                $('#modalEliminarUsuario').modal('hide');
+                            },
+                            confirmarEliminar() {
+                                this.guardandoEliminar = true;
+                                const id = this.usuarioAEliminar.id;
+                                $.ajax({
+                                    url: `@Url.Action("Eliminar", "Usuario")/${id}`,
+                                    method: 'POST',
+                                    dataType: 'json',
+                                    success: (data) => {
+                                        if (data.success) {
+                                            alert('Usuario eliminado correctamente');
+                                            this.cerrarModalEliminar();
+                                            this.paginaActual = 1;
+                                            this.cargarUsuarios();
+                                        } else {
+                                            this.errorEliminar = data.error || 'Error al eliminar';
+                                        }
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al eliminar:', error);
+                                        this.errorEliminar = xhr.responseJSON?.error || 'Error al eliminar el usuario';
+                                    },
+                                    complete: () => {
+                                        this.guardandoEliminar = false;
+                                    }
+                                });
+                            },
+
+                            // ---------- Cambio de clave ----------
+                            mostrarModalClave() {
+                                this.errorClave = '';
+                                this.cambioClave = { claveVieja: '', claveNueva: '', claveRepeticion: '' };
+                                $('#modalClave').modal('show');
+                            },
+                            cerrarModalClave() {
+                                $('#modalClave').modal('hide');
+                            },
+                            guardarClave() {
+                                this.errorClave = '';
+                                if (this.cambioClave.claveNueva !== this.cambioClave.claveRepeticion) {
+                                    this.errorClave = 'Las contraseñas no coinciden';
+                                    return;
+                                }
+                                if (this.cambioClave.claveNueva.length < 6) {
+                                    this.errorClave = 'La contraseña debe tener al menos 6 caracteres';
+                                    return;
+                                }
+                                const payload = {
+                                    id: this.usuarioEdit.id || this.usuarioSeleccionado.id,
+                                    claveVieja: this.cambioClave.claveVieja,
+                                    claveNueva: this.cambioClave.claveNueva,
+                                    claveRepeticion: this.cambioClave.claveRepeticion
+                                };
+                                this.guardandoClave = true;
+                                $.ajax({
+                                    url: '@Url.Action("CambiarClave", "Usuario")',
+                                    method: 'POST',
+                                    contentType: 'application/json',
+                                    data: JSON.stringify(payload),
+                                    success: (data) => {
+                                        if (data.success) {
+                                            alert('Contraseña cambiada correctamente');
+                                            this.cerrarModalClave();
+                                        }
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al cambiar clave:', error);
+                                        this.errorClave = xhr.responseJSON?.error || 'Error al cambiar la contraseña';
+                                    },
+                                    complete: () => {
+                                        this.guardandoClave = false;
+                                    }
+                                });
+                            },
+
+                            // ---------- Cambio de avatar ----------
+                            seleccionarAvatar(event) {
+                                const file = event.target.files[0];
+                                if (file) {
+                                    this.avatarFile = file;
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        this.avatarPreview = e.target.result;
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            },
+                            mostrarModalAvatar() {
+                                this.avatarFile = null;
+                                this.avatarPreview = '';
+                                this.errorAvatar = '';
+                                $('#modalAvatar').modal('show');
+                            },
+                            cerrarModalAvatar() {
+                                $('#modalAvatar').modal('hide');
+                            },
+                            guardarAvatar() {
+                                if (!this.avatarFile) {
+                                    this.errorAvatar = 'Seleccione una imagen';
+                                    return;
+                                }
+                                const formData = new FormData();
+                                formData.append('avatar', this.avatarFile);
+                                this.guardandoAvatar = true;
+                                $.ajax({
+                                    url: `@Url.Action("CambiarAvatar", "Usuario")?id=${this.usuarioEdit.id || this.usuarioSeleccionado.id}`,
+                                    method: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: (data) => {
+                                        if (data.success) {
+                                            alert('Avatar actualizado correctamente');
+                                            const url = data.avatarUrl;
+                                            if (this.modo_actual === this.modos.edicion) {
+                                                this.usuarioEdit.avatar = url;
+                                            } else {
+                                                this.usuarioSeleccionado.avatar = url;
+                                            }
+                                            this.cerrarModalAvatar();
+                                            this.cargarUsuarios();
+                                        }
+                                    },
+                                    error: (xhr, status, error) => {
+                                        console.error('Error al subir avatar:', error);
+                                        this.errorAvatar = xhr.responseJSON?.error || 'Error al subir la imagen';
+                                    },
+                                    complete: () => {
+                                        this.guardandoAvatar = false;
+                                    }
+                                });
+                            }
+                        },
+                        mounted() {
+                            this.cargarUsuarios();
+                        }
+                    }).mount('#appVue');
+                });
+            </script>
+        }
