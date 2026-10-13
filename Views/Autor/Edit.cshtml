@@ -1,0 +1,56 @@
+@model Cuello_BiblioTeca_LAB2.Models.Autor
+
+@{
+    ViewData["Title"] = "Editar Autor";
+}
+
+<section class="edit-page">
+    <div class="edit-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-pen"></i></div>
+            <div>
+                <p class="edit-eyebrow">Catálogo</p>
+                <h1>Editar autor</h1>
+                <p class="edit-description">Modifique los datos del autor.</p>
+            </div>
+        </header>
+
+        <form asp-action="Edit" asp-route-id="@Model.IdAutor" class="edit-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="IdAutor" />
+
+            <div class="edit-fields">
+                <div class="form-group">
+                    <label asp-for="Nombre" class="control-label"></label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Apellido" class="control-label"></label>
+                    <input asp-for="Apellido" class="form-control" />
+                    <span asp-validation-for="Apellido" class="text-danger"></span>
+                </div>
+
+                <div class="form-group edit-email-field">
+                    <label asp-for="Nacionalidad" class="control-label"></label>
+                    <input asp-for="Nacionalidad" class="form-control" />
+                    <span asp-validation-for="Nacionalidad" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-save" aria-hidden="true"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

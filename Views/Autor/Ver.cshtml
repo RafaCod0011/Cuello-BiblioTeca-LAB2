@@ -1,0 +1,50 @@
+@model Cuello_BiblioTeca_LAB2.Models.Autor
+
+@{
+    ViewData["Title"] = "Detalles del Autor";
+}
+
+<section class="details-page">
+    <div class="details-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-pen-nib"></i></div>
+            <div>
+                <p class="edit-eyebrow">Catálogo</p>
+                <h1>Detalles del autor</h1>
+                <p class="edit-description">Información del autor seleccionado.</p>
+            </div>
+        </header>
+
+        <div class="row details-layout">
+            <div class="col-md-12">
+                <dl class="details-list">
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.IdAutor)</dt>
+                        <dd>@Html.DisplayFor(m => m.IdAutor)</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Nombre)</dt>
+                        <dd>@Html.DisplayFor(m => m.Nombre)</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Apellido)</dt>
+                        <dd>@Html.DisplayFor(m => m.Apellido)</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Nacionalidad)</dt>
+                        <dd>@(Model.Nacionalidad ?? "—")</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="details-actions">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.IdAutor" class="btn btn-primary">
+                <i class="fa-solid fa-pen me-2"></i>Editar
+            </a>
+        </div>
+    </div>
+</section>

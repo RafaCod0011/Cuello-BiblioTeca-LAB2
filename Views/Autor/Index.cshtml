@@ -1,0 +1,119 @@
+@model IEnumerable<Cuello_BiblioTeca_LAB2.Models.Autor>
+
+@{
+    ViewData["Title"] = "Autores";
+    var Pagina = ViewBag.Pagina ?? 1;
+    var TotalPaginas = ViewBag.TotalPaginas ?? 1;
+}
+
+<section class="index-page">
+    <header class="index-header">
+        <div>
+            <p class="index-eyebrow">Catálogo</p>
+            <h1>Autores</h1>
+            <p class="index-description">Administre los autores del catálogo.</p>
+        </div>
+        <a class="btn btn-success index-create-button" asp-action="Create">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i><span>Nuevo autor</span>
+        </a>
+    </header>
+
+    @if (ViewBag.Mensaje != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @ViewBag.Mensaje
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="index-table-wrapper">
+        <table class="table index-table">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(m => m.IdAutor)</th>
+                    <th>@Html.DisplayNameFor(m => m.Nombre)</th>
+                    <th>@Html.DisplayNameFor(m => m.Apellido)</th>
+                    <th>@Html.DisplayNameFor(m => m.Nacionalidad)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(m => item.IdAutor)</td>
+                        <td>@Html.DisplayFor(m => item.Nombre)</td>
+                        <td>@Html.DisplayFor(m => item.Apellido)</td>
+                        <td>@(item.Nacionalidad ?? "—")</td>
+                        <td>
+                            <div class="index-actions" role="group">
+                                <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.IdAutor" title="Ver">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.IdAutor" title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a class="btn btn-danger btn-sm" asp-action="Eliminar" asp-route-id="@item.IdAutor" title="Eliminar">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            @if (Pagina > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina - 1)" aria-label="Anterior">
+                        <i class="fa-solid fa-angles-left"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+                </li>
+            }
+
+            @for (int i = 1; i <= TotalPaginas; i++)
+            {
+                <li class="page-item @(i == Pagina ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pagina="@i">@i</a>
+                </li>
+            }
+
+            @if (Pagina < TotalPaginas)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina + 1)" aria-label="Siguiente">
+                        <i class="fa-solid fa-angles-right"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+                </li>
+            }
+        </ul>
+    </nav>
+</section>

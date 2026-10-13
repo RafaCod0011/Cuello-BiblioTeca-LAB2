@@ -1,0 +1,48 @@
+@model Cuello_BiblioTeca_LAB2.Models.Autor
+
+@{
+    ViewData["Title"] = "Eliminar Autor";
+}
+
+<section class="delete-page">
+    <div class="delete-card">
+        <header class="delete-card-header">
+            <div class="delete-icon" aria-hidden="true"><i class="fa-solid fa-pen-nib"></i></div>
+            <div>
+                <p class="delete-eyebrow">Catálogo</p>
+                <h1>Eliminar autor</h1>
+                <p class="delete-question">¿Está seguro de que desea eliminar este autor?</p>
+            </div>
+        </header>
+
+        <div class="delete-details">
+            <dl>
+                <div class="delete-detail">
+                    <dt>@Html.DisplayNameFor(m => m.IdAutor)</dt>
+                    <dd>@Html.DisplayFor(m => m.IdAutor)</dd>
+                </div>
+                <div class="delete-detail">
+                    <dt>@Html.DisplayNameFor(m => m.Nombre)</dt>
+                    <dd>@Html.DisplayFor(m => m.Nombre)</dd>
+                </div>
+                <div class="delete-detail">
+                    <dt>@Html.DisplayNameFor(m => m.Apellido)</dt>
+                    <dd>@Html.DisplayFor(m => m.Apellido)</dd>
+                </div>
+                <div class="delete-detail">
+                    <dt>@Html.DisplayNameFor(m => m.Nacionalidad)</dt>
+                    <dd>@(Model.Nacionalidad ?? "—")</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="delete-actions">
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            <form asp-action="Eliminar" asp-route-id="@Model.IdAutor" method="post">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
