@@ -1,0 +1,73 @@
+@model Cuello_BiblioTeca_LAB2.Models.Ejemplar
+
+@{
+    ViewData["Title"] = "Detalles del Ejemplar";
+}
+
+<section class="details-page">
+    <div class="details-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+                <p class="edit-eyebrow">Inventario</p>
+                <h1>Ejemplar #@Model.CodigoEjemplar</h1>
+                <p class="edit-description">Información completa del ejemplar.</p>
+            </div>
+        </header>
+
+        <div class="row details-layout">
+            <div class="col-md-12">
+                <dl class="details-list">
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.CodigoEjemplar)</dt>
+                        <dd>@Html.DisplayFor(m => m.CodigoEjemplar)</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>Libro</dt>
+                        <dd>@(Model.LibroTitulo ?? "—")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>ISBN</dt>
+                        <dd>@Html.DisplayFor(m => m.ISBN)</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Localizacion)</dt>
+                        <dd>@(Model.Localizacion ?? "—")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Estado)</dt>
+                        <dd>
+                            @switch (Model.Estado)
+                            {
+                                case "Disponible":
+                                    <span class="badge bg-success">Disponible</span>
+                                    break;
+                                case "Prestado":
+                                    <span class="badge bg-primary">Prestado</span>
+                                    break;
+                                case "Reservado":
+                                    <span class="badge bg-warning text-dark">Reservado</span>
+                                    break;
+                                case "Dañado":
+                                    <span class="badge" style="background-color: #fd7e14; color: white;">Dañado</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary">@Model.Estado</span>
+                                    break;
+                            }
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="details-actions">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.CodigoEjemplar" class="btn btn-primary">
+                <i class="fa-solid fa-pen me-2"></i>Editar
+            </a>
+        </div>
+    </div>
+</section>

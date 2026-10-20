@@ -286,6 +286,64 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
             }
         }
 
+        // GET: Libro/Buscar?term=...
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Buscar(string term)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+                    return Json(new List<object>());
+
+                var resultados = repositorio.BuscarPorTituloOIsbn(term)
+                    .Select(l => new
+                    {
+                        id = l.ISBN,
+                        text = $"{l.Titulo} ({l.ISBN})"
+                    })
+                    .ToList();
+
+                return Json(resultados);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error al buscar libros");
+                return Json(new List<object>());
+            }
+        }
+
+        // GET: Libro/PorAutor/5
+        public IActionResult PorAutor(int id, int pagina = 1)
+        {
+            try
+            {
+                // Validar que el autor exista 
+                var autor = repositorioAutor.ObtenerPorId(id);
+                if (autor == null)
+                    return NotFound();
+
+                var tamaño = 6;
+                pagina = Math.Max(pagina, 1);
+
+                var lista = repositorio.ObtenerPorAutor(id, pagina, tamaño);
+                var total = repositorio.ContarPorAutor(id);
+
+                ViewBag.AutorId = id;
+                ViewBag.AutorNombre = autor.ToString();
+                ViewBag.Pagina = pagina;
+                ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
+                ViewBag.TotalRegistros = total;
+
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en PorAutor de Libro");
+                throw;
+            }
+        }
+
         // Metodos privados para cargar listas desplegables y manejar portadas
         private void CargarListasDesplegables(int? categoriaSeleccionada = null)
         {

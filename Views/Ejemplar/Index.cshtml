@@ -1,0 +1,229 @@
+@model IEnumerable<Cuello_BiblioTeca_LAB2.Models.Ejemplar>
+
+@{
+    ViewData["Title"] = "Ejemplares";
+    var Pagina = (int)(ViewBag.Pagina ?? 1);
+    var TotalPaginas = (int)(ViewBag.TotalPaginas ?? 1);
+    var TotalRegistros = (int)(ViewBag.TotalRegistros ?? 0);
+    var busquedaActual = ViewBag.Busqueda as string;
+    var estadoActual = ViewBag.Estado as string;
+    var hayFiltros = !string.IsNullOrWhiteSpace(busquedaActual) || !string.IsNullOrWhiteSpace(estadoActual);
+
+    // Calcular ventana de páginas visibles (5 números)
+    int desde = Math.Max(1, Math.Min(Pagina - 2, TotalPaginas - 4));
+    int hasta = Math.Min(TotalPaginas, desde + 4);
+}
+
+<section class="index-page">
+    <header class="index-header">
+        <div>
+            <p class="index-eyebrow">Gestión de inventario</p>
+            <h1>Ejemplares</h1>
+            <p class="index-description">Administre las copias físicas del catálogo.</p>
+        </div>
+        <a class="btn btn-success index-create-button" asp-action="Create">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i><span>Nuevo ejemplar</span>
+        </a>
+    </header>
+
+    @if (ViewBag.Mensaje != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @ViewBag.Mensaje
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <div class="index-table-wrapper mb-3" style="padding: 1rem;">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Búsqueda</label>
+                <input type="text" name="busqueda" value="@busquedaActual" class="form-control"
+                       placeholder="Título, ISBN o localización..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="Disponible" selected="@(estadoActual == "Disponible")">Disponible</option>
+                    <option value="Prestado" selected="@(estadoActual == "Prestado")">Prestado</option>
+                    <option value="Reservado" selected="@(estadoActual == "Reservado")">Reservado</option>
+                    <option value="Dañado" selected="@(estadoActual == "Dañado")">Dañado</option>
+                    <option value="Baja" selected="@(estadoActual == "Baja")">Baja</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-secondary w-100">
+                    <i class="fa-solid fa-eraser me-1"></i> Limpiar
+                </a>
+            </div>
+        </form>
+        @if (hayFiltros)
+        {
+            <small class="text-muted d-block mt-2">
+                Mostrando @TotalRegistros resultado(s) para los filtros aplicados.
+            </small>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            @(hayFiltros
+                ? "No se encontraron ejemplares con los filtros aplicados."
+                : "No hay ejemplares registrados.")
+        </div>
+    }
+    else
+    {
+        <div class="index-table-wrapper">
+            <table class="table index-table">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(m => m.CodigoEjemplar)</th>
+                        <th>Libro</th>
+                        <th>@Html.DisplayNameFor(m => m.Localizacion)</th>
+                        <th>@Html.DisplayNameFor(m => m.Estado)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(m => item.CodigoEjemplar)</td>
+                            <td>@(item.LibroTitulo ?? "—")</td>
+                            <td>@(item.Localizacion ?? "—")</td>
+                            <td>
+                                @switch (item.Estado)
+                                {
+                                    case "Disponible":
+                                        <span class="badge bg-success">Disponible</span>
+                                        break;
+                                    case "Prestado":
+                                        <span class="badge bg-primary">Prestado</span>
+                                        break;
+                                    case "Reservado":
+                                        <span class="badge bg-warning text-dark">Reservado</span>
+                                        break;
+                                    case "Dañado":
+                                        <span class="badge" style="background-color: #fd7e14; color: white;">Dañado</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@item.Estado</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <div class="index-actions" role="group">
+                                    <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.CodigoEjemplar"
+                                       title="Ver">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.CodigoEjemplar"
+                                       title="Editar">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                    <a class="btn btn-danger btn-sm" asp-action="Eliminar" asp-route-id="@item.CodigoEjemplar"
+                                       title="Eliminar">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        @if (TotalPaginas > 1)
+        {
+            <nav aria-label="Paginación de ejemplares">
+                <ul class="pagination justify-content-center">
+
+                    <!-- Anterior -->
+                    @if (Pagina > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina - 1)"
+                               asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoActual" aria-label="Anterior">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+                        </li>
+                    }
+
+                    <!-- Primera página + puntos suspensivos -->
+                    @if (desde > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="1" asp-route-busqueda="@busquedaActual"
+                               asp-route-estado="@estadoActual">1</a>
+                        </li>
+                        @if (desde > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    <!-- Ventana de páginas visibles -->
+                    @for (int i = desde; i <= hasta; i++)
+                    {
+                        <li class="page-item @(i == Pagina ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-busqueda="@busquedaActual"
+                               asp-route-estado="@estadoActual">@i</a>
+                        </li>
+                    }
+
+                    <!-- Última página + puntos suspensivos -->
+                    @if (hasta < TotalPaginas)
+                    {
+                        @if (hasta < TotalPaginas - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@TotalPaginas"
+                               asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoActual">@TotalPaginas</a>
+                        </li>
+                    }
+
+                    <!-- Siguiente -->
+                    @if (Pagina < TotalPaginas)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina + 1)"
+                               asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoActual" aria-label="Siguiente">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</section>

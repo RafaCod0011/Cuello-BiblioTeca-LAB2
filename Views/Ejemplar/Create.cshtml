@@ -1,0 +1,85 @@
+@model Cuello_BiblioTeca_LAB2.Models.Ejemplar
+
+@{
+    ViewData["Title"] = "Nuevo Ejemplar";
+}
+
+<section class="edit-page">
+    <div class="edit-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+                <p class="edit-eyebrow">Inventario</p>
+                <h1>Nuevo ejemplar</h1>
+                <p class="edit-description">Registre una nueva copia física.</p>
+            </div>
+        </header>
+
+        <form asp-action="Create" class="edit-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="edit-fields">
+                <div class="form-group edit-email-field">
+                    <label asp-for="ISBN" class="control-label"></label>
+                    <select asp-for="ISBN" class="form-control" id="libroSelect"></select>
+                    <span asp-validation-for="ISBN" class="text-danger"></span>
+                </div>
+
+                <div class="form-group edit-email-field">
+                    <label asp-for="Localizacion" class="control-label"></label>
+                    <input asp-for="Localizacion" class="form-control" placeholder="Ej: Estantería A3" />
+                    <span asp-validation-for="Localizacion" class="text-danger"></span>
+                </div>
+
+                <div class="form-group edit-email-field">
+                    <label asp-for="Estado" class="control-label"></label>
+                    <select asp-for="Estado" class="form-control">
+                        <option value="Disponible">Disponible</option>
+                        <option value="Dañado">Dañado</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                    <span asp-validation-for="Estado" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-save" aria-hidden="true"></i> Crear
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('#libroSelect').select2({
+                language: 'es',
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar libro...',
+                minimumInputLength: 2,
+                ajax: {
+                    url: '@Url.Action("Buscar", "Libro")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({ term: params.term }),
+                    processResults: (data) => ({ results: data })
+                }
+            });
+
+            // Si viene un libro pre-seleccionado (desde Ver Libro)
+            @if (ViewBag.LibroId != null)
+                {
+                    <text>
+                            var opcion = new Option('@ViewBag.LibroSeleccionado', '@ViewBag.LibroId', true, true);
+                            $('#libroSelect').append(opcion).trigger('change');
+                    </text>
+            }
+                });
+    </script>
+}

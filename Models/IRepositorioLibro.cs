@@ -23,5 +23,10 @@ namespace Cuello_BiblioTeca_LAB2.Models
         // Contadores
         int ObtenerCantidadEjemplares(string isbn);
         int ObtenerCantidadEjemplaresDisponibles(string isbn);
+
+        IList<Libro> BuscarPorTituloOIsbn(string term);
+
+        IList<Libro> ObtenerPorAutor(int idAutor, int pagina, int tamano);
+        int ContarPorAutor(int idAutor);
     }
 }

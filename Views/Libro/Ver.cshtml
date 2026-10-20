@@ -85,6 +85,9 @@
             </a>
             @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
             {
+                <a asp-controller="Ejemplar" asp-action="Index" asp-route-busqueda="@Model.ISBN" class="btn btn-success">
+                    <i class="fa-solid fa-layer-group me-2"></i>Ver ejemplares
+                </a>
                 <a asp-action="Edit" asp-route-id="@Model.ISBN" class="btn btn-primary">
                     <i class="fa-solid fa-pen me-2"></i>Editar
                 </a>

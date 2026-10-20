@@ -280,6 +280,87 @@ namespace Cuello_BiblioTeca_LAB2.Models
             return res;
         }
 
+        public IList<Libro> BuscarPorTituloOIsbn(string term)
+        {
+            var res = new List<Libro>();
+            term = "%" + term + "%";
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT ISBN, Titulo FROM Libro 
+                            WHERE Titulo LIKE @term OR ISBN LIKE @term
+                            ORDER BY Titulo
+                            LIMIT 20";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@term", term);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        res.Add(new Libro
+                        {
+                            ISBN = reader.GetString("ISBN"),
+                            Titulo = reader.GetString("Titulo")
+                        });
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public IList<Libro> ObtenerPorAutor(int idAutor, int pagina, int tamano)
+        {
+            var res = new List<Libro>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = $@"
+                    SELECT l.ISBN, l.Titulo, l.NroPaginas, l.Editorial, l.AnioPublicacion, 
+                        l.Sinopsis, l.Portada, l.IdCategoria,
+                        c.Nombre AS CategoriaNombre,
+                        (SELECT GROUP_CONCAT(CONCAT(a.Nombre, ' ', a.Apellido) SEPARATOR ', ')
+                            FROM Escribe e 
+                            INNER JOIN Autor a ON e.IdAutor = a.IdAutor 
+                            WHERE e.ISBN = l.ISBN) AS AutoresTexto,
+                        (SELECT COUNT(*) FROM Ejemplar ej WHERE ej.ISBN = l.ISBN) AS TotalEjemplares,
+                        (SELECT COUNT(*) FROM Ejemplar ej WHERE ej.ISBN = l.ISBN AND ej.Estado = 'Disponible') AS EjemplaresDisponibles
+                    FROM Libro l
+                    LEFT JOIN Categoria c ON l.IdCategoria = c.IdCategoria
+                    INNER JOIN Escribe e2 ON l.ISBN = e2.ISBN
+                    WHERE e2.IdAutor = @idAutor
+                    ORDER BY l.Titulo ASC
+                    LIMIT {tamano} OFFSET {(pagina - 1) * tamano}";
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@idAutor", idAutor);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                        res.Add(MapLibro(reader));
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public int ContarPorAutor(int idAutor)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT COUNT(DISTINCT l.ISBN) 
+                            FROM Libro l
+                            INNER JOIN Escribe e ON l.ISBN = e.ISBN
+                            WHERE e.IdAutor = @idAutor";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@idAutor", idAutor);
+                    connection.Open();
+                    return Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+        }
+
       
         public int ObtenerCantidadEjemplares(string isbn)
         {

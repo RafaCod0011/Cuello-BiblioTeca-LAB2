@@ -58,12 +58,18 @@
                                 <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.IdAutor" title="Ver">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
-                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.IdAutor" title="Editar">
+                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.IdAutor"
+                                   title="Editar">
                                     <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a class="btn btn-success btn-sm" asp-controller="Libro" asp-action="PorAutor"
+                                   asp-route-id="@item.IdAutor" title="Ver libros del autor">
+                                    <i class="fa-solid fa-book"></i>
                                 </a>
                                 @if (User.IsInRole("Administrador"))
                                 {
-                                    <a class="btn btn-danger btn-sm" asp-action="Eliminar" asp-route-id="@item.IdAutor" title="Eliminar">
+                                    <a class="btn btn-danger btn-sm" asp-action="Eliminar" asp-route-id="@item.IdAutor"
+                                       title="Eliminar">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </a>
                                 }

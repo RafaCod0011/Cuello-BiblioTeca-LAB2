@@ -42,6 +42,10 @@
             <a asp-action="Index" class="btn btn-secondary">
                 <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
             </a>
+            <a asp-controller="Libro" asp-action="PorAutor" asp-route-id="@Model.IdAutor"
+               class="btn btn-outline-primary">
+                <i class="fa-solid fa-book me-2"></i>Ver libros
+            </a>
             <a asp-action="Edit" asp-route-id="@Model.IdAutor" class="btn btn-primary">
                 <i class="fa-solid fa-pen me-2"></i>Editar
             </a>

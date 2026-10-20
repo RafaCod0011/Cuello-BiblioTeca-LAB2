@@ -1,0 +1,179 @@
+@model IEnumerable<Cuello_BiblioTeca_LAB2.Models.Libro>
+
+@{
+    ViewData["Title"] = "Libros del autor";
+    var Pagina = (int)(ViewBag.Pagina ?? 1);
+    var TotalPaginas = (int)(ViewBag.TotalPaginas ?? 1);
+    var TotalRegistros = (int)(ViewBag.TotalRegistros ?? 0);
+    var autorId = (int?)ViewBag.AutorId ?? 0;
+    var autorNombre = ViewBag.AutorNombre as string ?? "";
+
+    int desde = Math.Max(1, Math.Min(Pagina - 2, TotalPaginas - 4));
+    int hasta = Math.Min(TotalPaginas, desde + 4);
+}
+
+<section class="index-page">
+    <header class="index-header">
+        <div>
+            <p class="index-eyebrow">Catálogo</p>
+            <h1>Libros de @autorNombre</h1>
+            <p class="index-description">
+                @TotalRegistros libro(s) registrado(s) de este autor.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Volver a Libros
+            </a>
+            <a asp-controller="Autor" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-pen-nib me-1"></i> Ir a Autores
+            </a>
+        </div>
+    </header>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            Este autor no tiene libros registrados.
+        </div>
+    }
+    else
+    {
+        <div class="property-grid">
+            @foreach (var item in Model)
+            {
+                <article class="property-card">
+                    <div class="property-cover">
+                        @if (!string.IsNullOrEmpty(item.Portada))
+                        {
+                            <img src="@item.Portada" alt="Portada de @item.Titulo" />
+                        }
+                        else
+                        {
+                            <div class="property-cover-placeholder">
+                                <i class="fa-solid fa-book"></i>
+                                <span>Sin portada</span>
+                            </div>
+                        }
+                        <span class="property-status badge @(item.EjemplaresDisponibles > 0 ? "bg-success" : "bg-secondary")">
+                            @item.EjemplaresDisponibles disponibles
+                        </span>
+                    </div>
+                    <div class="property-content">
+                        <div class="property-heading">
+                            <span class="property-code">ISBN: @item.ISBN</span>
+                            <h2>@item.Titulo</h2>
+                        </div>
+                        <dl class="property-data">
+                            <div>
+                                <dt>Categoría</dt>
+                                <dd>@(item.CategoriaNombre ?? "Sin categoría")</dd>
+                            </div>
+                            <div>
+                                <dt>Autor(es)</dt>
+                                <dd>@(item.AutoresTexto ?? "Sin autores")</dd>
+                            </div>
+                            <div>
+                                <dt>Año</dt>
+                                <dd>@(item.AnioPublicacion?.ToString() ?? "—")</dd>
+                            </div>
+                            <div>
+                                <dt>Páginas</dt>
+                                <dd>@(item.NroPaginas?.ToString() ?? "—")</dd>
+                            </div>
+                            <div>
+                                <dt>Editorial</dt>
+                                <dd>@(item.Editorial ?? "—")</dd>
+                            </div>
+                            <div>
+                                <dt>Ejemplares</dt>
+                                <dd>@item.TotalEjemplares (@item.EjemplaresDisponibles disp.)</dd>
+                            </div>
+                        </dl>
+                        <div class="property-actions">
+                            <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.ISBN" title="Ver">
+                                <i class="fa-solid fa-eye"></i><span>Ver</span>
+                            </a>
+                            @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+                            {
+                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.ISBN" title="Editar">
+                                    <i class="fa-solid fa-pen"></i><span>Editar</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <!-- Paginación  -->
+        @if (TotalPaginas > 1)
+        {
+            <nav aria-label="Paginación de libros">
+                <ul class="pagination justify-content-center">
+                    @if (Pagina > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="PorAutor" asp-route-id="@autorId" asp-route-pagina="@(Pagina - 1)"
+                               aria-label="Anterior">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+                        </li>
+                    }
+
+                    @if (desde > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="PorAutor" asp-route-id="@autorId" asp-route-pagina="1">1</a>
+                        </li>
+                        @if (desde > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (int i = desde; i <= hasta; i++)
+                    {
+                        <li class="page-item @(i == Pagina ? "active" : "")">
+                            <a class="page-link" asp-action="PorAutor" asp-route-id="@autorId" asp-route-pagina="@i">@i</a>
+                        </li>
+                    }
+
+                    @if (hasta < TotalPaginas)
+                    {
+                        @if (hasta < TotalPaginas - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" asp-action="PorAutor" asp-route-id="@autorId"
+                               asp-route-pagina="@TotalPaginas">@TotalPaginas</a>
+                        </li>
+                    }
+
+                    @if (Pagina < TotalPaginas)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="PorAutor" asp-route-id="@autorId" asp-route-pagina="@(Pagina + 1)"
+                               aria-label="Siguiente">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</section>
