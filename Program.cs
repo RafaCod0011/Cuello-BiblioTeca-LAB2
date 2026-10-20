@@ -18,7 +18,7 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioAutor, RepositorioAutor>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
-//builder.Services.AddScoped<IRepositorioLibro, RepositorioLibro>();
+builder.Services.AddScoped<IRepositorioLibro, RepositorioLibro>();
 //builder.Services.AddScoped<IRepositorioEjemplar, RepositorioEjemplar>();
 //builder.Services.AddScoped<IRepositorioPrestamo, RepositorioPrestamo>();
 //builder.Services.AddScoped<IRepositorioReserva, RepositorioReserva>();

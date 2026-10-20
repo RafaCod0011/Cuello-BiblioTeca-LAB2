@@ -1,0 +1,115 @@
+@model Cuello_BiblioTeca_LAB2.Models.Libro
+
+@{
+    ViewData["Title"] = "Nuevo Libro";
+    var categorias = (IList<Cuello_BiblioTeca_LAB2.Models.Categoria>)ViewBag.Categorias
+                     ?? new List<Cuello_BiblioTeca_LAB2.Models.Categoria>();
+}
+
+<section class="edit-page">
+    <div class="edit-card inmueble-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-book"></i></div>
+            <div>
+                <p class="edit-eyebrow">Catálogo</p>
+                <h1>Nuevo libro</h1>
+                <p class="edit-description">Complete los datos del libro.</p>
+            </div>
+        </header>
+
+        <form asp-action="Create" enctype="multipart/form-data" class="edit-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="edit-fields">
+                <div class="form-group">
+                    <label asp-for="ISBN" class="control-label"></label>
+                    <input asp-for="ISBN" class="form-control" />
+                    <span asp-validation-for="ISBN" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Titulo" class="control-label"></label>
+                    <input asp-for="Titulo" class="form-control" />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NroPaginas" class="control-label"></label>
+                    <input asp-for="NroPaginas" type="number" min="1" class="form-control" />
+                    <span asp-validation-for="NroPaginas" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Editorial" class="control-label"></label>
+                    <input asp-for="Editorial" class="form-control" />
+                    <span asp-validation-for="Editorial" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="AnioPublicacion" class="control-label"></label>
+                    <input asp-for="AnioPublicacion" type="number" min="1" class="form-control" />
+                    <span asp-validation-for="AnioPublicacion" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="IdCategoria" class="control-label"></label>
+                    <select asp-for="IdCategoria" class="form-control" id="categoria"></select>
+                    <span asp-validation-for="IdCategoria" class="text-danger"></span>
+                </div>
+                <div class="form-group edit-email-field">
+                    <label class="control-label">Autores</label>
+                    <select id="autores" name="autoresIds" class="form-control" multiple="multiple">
+                    </select>
+                </div>
+                <div class="form-group edit-email-field">
+                    <label asp-for="Sinopsis" class="control-label"></label>
+                    <textarea asp-for="Sinopsis" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Sinopsis" class="text-danger"></span>
+                </div>
+                <div class="form-group edit-email-field">
+                    <label asp-for="PortadaFile" class="control-label"></label>
+                    <input type="file" name="PortadaFile" class="form-control" accept="image/*" />
+                    <span asp-validation-for="PortadaFile" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-save" aria-hidden="true"></i> Crear
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('#autores').select2({
+                language: 'es',
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar autores...',
+                minimumInputLength: 2,
+                ajax: {
+                    url: '@Url.Action("Buscar", "Autor")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({ term: params.term }),
+                    processResults: (data) => ({ results: data })
+                }
+            });
+            $('#categoria').select2({
+                language: 'es',
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar categoría...',
+                minimumInputLength: 1,
+                ajax: {
+                    url: '@Url.Action("Buscar", "Categoria")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({ term: params.term }),
+                    processResults: (data) => ({ results: data })
+                }
+            });
+        });
+    </script>
+}
