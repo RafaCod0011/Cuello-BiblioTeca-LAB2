@@ -1,0 +1,53 @@
+@model Cuello_BiblioTeca_LAB2.Models.Multa
+
+@{
+    ViewData["Title"] = "Registrar Pago de Multa";
+}
+
+<section class="edit-page">
+    <div class="edit-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-dollar-sign"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión</p>
+                <h1>Registrar pago de multa</h1>
+                <p class="edit-description">Confirme el pago de la multa.</p>
+            </div>
+        </header>
+
+        <div class="p-3">
+            <dl class="details-list">
+                <div class="details-row">
+                    <dt>Socio</dt>
+                    <dd>@(Model.SocioNombre ?? "—") (DNI: @(Model.SocioDni ?? "—"))</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Libro</dt>
+                    <dd>@(Model.LibroTitulo ?? "—")</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Motivo</dt>
+                    <dd>@(Model.Motivo ?? "—")</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Importe</dt>
+                    <dd><strong class="fs-4">@Model.Importe.ToString("C", new
+                                                    System.Globalization.CultureInfo("es-AR"))</strong></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <form asp-action="Pagar" asp-route-id="@Model.IdMulta" method="post" class="edit-form">
+                <div class="alert alert-info">
+                    Al confirmar, se registrará el pago de la multa y el socio quedará habilitado para nuevos préstamos.
+                </div>
+
+                <div class="edit-actions">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-check" aria-hidden="true"></i> Confirmar pago
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>

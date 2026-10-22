@@ -1,0 +1,113 @@
+@model Cuello_BiblioTeca_LAB2.Models.Prestamo
+
+@{
+    ViewData["Title"] = $"Préstamo #{Model.IdPrestamo}";
+}
+
+<section class="details-page">
+    <div class="details-card reservation-details-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-book-open-reader"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión de alquileres</p>
+                <h1>Préstamo #@Model.IdPrestamo</h1>
+                <p class="edit-description">Información completa del préstamo.</p>
+            </div>
+        </header>
+
+        <div class="reservation-details-content">
+            <dl class="details-list">
+                <div class="details-row">
+                    <dt>@Html.DisplayNameFor(m => m.IdPrestamo)</dt>
+                    <dd>@Html.DisplayFor(m => m.IdPrestamo)</dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Socio</dt>
+                    <dd>@(Model.Socio?.ToString() ?? "—") (DNI: @(Model.Socio?.Dni ?? "—"))</dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Libro</dt>
+                    <dd>
+                        @(Model.Ejemplar?.LibroTitulo ?? "—")
+                        <br />
+                        <small class="text-muted">ISBN: @(Model.Ejemplar?.ISBN ?? "—")</small>
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Ejemplar</dt>
+                    <dd>
+                        #@Model.CodigoEjemplar
+                        @if (!string.IsNullOrEmpty(Model.Ejemplar?.Localizacion))
+                        {
+                            <span>(@Model.Ejemplar.Localizacion)</span>
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>@Html.DisplayNameFor(m => m.FechaPrestamo)</dt>
+                    <dd>@Model.FechaPrestamo.ToString("dd/MM/yyyy")</dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>@Html.DisplayNameFor(m => m.FechaVencimiento)</dt>
+                    <dd>
+                        @Model.FechaVencimiento.ToString("dd/MM/yyyy")
+                        @if (Model.EstaVencido)
+                        {
+                            <span class="badge bg-danger ms-2">
+                                @Model.DiasAtraso día(s) de atraso
+                            </span>
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>@Html.DisplayNameFor(m => m.FechaDevolucion)</dt>
+                    <dd>@(Model.FechaDevolucion?.ToString("dd/MM/yyyy") ?? "—")</dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Estado</dt>
+                    <dd>
+                        @if (Model.Estado == "Activo")
+                        {
+                            @if (Model.EstaVencido)
+                            {
+                                <span class="badge bg-danger">Vencido</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Activo</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Devuelto</span>
+                        }
+                    </dd>
+                </div>
+
+                <div class="details-row">
+                    <dt>Registrado por</dt>
+                    <dd>@(Model.Bibliotecario?.ToString() ?? "—")</dd>
+                </div>
+            </dl>
+
+            <div class="details-actions">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
+                </a>
+                @if (Model.Estado == "Activo")
+                {
+                    <a asp-action="Devolucion" asp-route-id="@Model.IdPrestamo" class="btn btn-warning">
+                        <i class="fa-solid fa-rotate-left me-2"></i>Registrar devolución
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>

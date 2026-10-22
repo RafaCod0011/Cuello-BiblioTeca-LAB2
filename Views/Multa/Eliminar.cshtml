@@ -1,0 +1,48 @@
+@model Cuello_BiblioTeca_LAB2.Models.Multa
+
+@{
+    ViewData["Title"] = "Eliminar Multa";
+}
+
+<section class="delete-page">
+    <div class="delete-card">
+        <header class="delete-card-header">
+            <div class="delete-icon" aria-hidden="true"><i class="fa-solid fa-dollar-sign"></i></div>
+            <div>
+                <p class="delete-eyebrow">Gestión</p>
+                <h1>Eliminar multa</h1>
+                <p class="delete-question">¿Está seguro de que desea eliminar esta multa?</p>
+            </div>
+        </header>
+
+        <div class="delete-details">
+            <dl>
+                <div class="delete-detail">
+                    <dt>@Html.DisplayNameFor(m => m.IdMulta)</dt>
+                    <dd>@Html.DisplayFor(m => m.IdMulta)</dd>
+                </div>
+                <div class="delete-detail">
+                    <dt>Socio</dt>
+                    <dd>@(Model.SocioNombre ?? "—")</dd>
+                </div>
+                <div class="delete-detail">
+                    <dt>Importe</dt>
+                    <dd>@Model.Importe.ToString("C", new System.Globalization.CultureInfo("es-AR"))</dd>
+                </div>
+                <div class="delete-detail">
+                    <dt>Motivo</dt>
+                    <dd>@(Model.Motivo ?? "—")</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="delete-actions">
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            <form asp-action="Eliminar" asp-route-id="@Model.IdMulta" method="post">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</section>

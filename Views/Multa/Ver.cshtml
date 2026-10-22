@@ -1,0 +1,79 @@
+@model Cuello_BiblioTeca_LAB2.Models.Multa
+
+@{
+    ViewData["Title"] = "Detalles de la Multa";
+}
+
+<section class="details-page">
+    <div class="details-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-dollar-sign"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión</p>
+                <h1>Multa #@Model.IdMulta</h1>
+                <p class="edit-description">Información de la penalización.</p>
+            </div>
+        </header>
+
+        <div class="row details-layout">
+            <div class="col-md-12">
+                <dl class="details-list">
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.IdMulta)</dt>
+                        <dd>@Html.DisplayFor(m => m.IdMulta)</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>Socio</dt>
+                        <dd>@(Model.SocioNombre ?? "—") (DNI: @(Model.SocioDni ?? "—"))</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>Libro</dt>
+                        <dd>@(Model.LibroTitulo ?? "—")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Motivo)</dt>
+                        <dd>@(Model.Motivo ?? "—")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Importe)</dt>
+                        <dd><strong>@Model.Importe.ToString("C", new System.Globalization.CultureInfo("es-AR"))</strong>
+                        </dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.FechaDeGeneracion)</dt>
+                        <dd>@Model.FechaDeGeneracion.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Pagada)</dt>
+                        <dd>
+                            @if (Model.Pagada)
+                            {
+                                <span class="badge bg-success">Pagada</span>
+                                @if (Model.FechaPagada.HasValue)
+                                {
+                                    <span>el @Model.FechaPagada.Value.ToString("dd/MM/yyyy")</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Pendiente</span>
+                            }
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="details-actions">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
+            </a>
+            @if (!Model.Pagada)
+            {
+                <a asp-action="Pagar" asp-route-id="@Model.IdMulta" class="btn btn-success">
+                    <i class="fa-solid fa-dollar-sign me-2"></i>Registrar pago
+                </a>
+            }
+        </div>
+    </div>
+</section>

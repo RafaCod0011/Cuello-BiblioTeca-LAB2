@@ -270,5 +270,31 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
                 throw;
             }
         }
+
+        // GET: Ejemplar/BuscarDisponibles?term=...
+        [HttpGet]
+        public IActionResult BuscarDisponibles(string term)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+                    return Json(new List<object>());
+
+                var resultados = repositorio.BuscarConFiltros(term, "Disponible", 1, 20)
+                    .Select(e => new
+                    {
+                        id = e.CodigoEjemplar,
+                        text = $"{e.LibroTitulo} (Ejemplar #{e.CodigoEjemplar} - {e.Localizacion ?? "Sin ubicación"})"
+                    })
+                    .ToList();
+
+                return Json(resultados);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error al buscar ejemplares disponibles");
+                return Json(new List<object>());
+            }
+        }
     }
 }

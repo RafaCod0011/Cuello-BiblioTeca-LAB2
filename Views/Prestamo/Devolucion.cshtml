@@ -1,0 +1,89 @@
+@model Cuello_BiblioTeca_LAB2.Models.Prestamo
+
+@{
+    ViewData["Title"] = "Registrar Devolución";
+    var diasAtraso = (DateTime.Today - Model.FechaVencimiento).Days;
+    var estaVencido = diasAtraso > 0;
+    var multaEstimada = estaVencido ? diasAtraso * 500 : 0;
+}
+
+<section class="edit-page">
+    <div class="edit-card reservation-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-rotate-left"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión de alquileres</p>
+                <h1>Registrar devolución</h1>
+                <p class="edit-description">Confirme la devolución del libro.</p>
+            </div>
+        </header>
+
+        <div class="p-3">
+            <dl class="details-list">
+                <div class="details-row">
+                    <dt>Socio</dt>
+                    <dd>@(Model.Socio?.ToString() ?? "—") (DNI: @(Model.Socio?.Dni ?? "—"))</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Libro</dt>
+                    <dd>@(Model.Ejemplar?.LibroTitulo ?? "—")</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Fecha de préstamo</dt>
+                    <dd>@Model.FechaPrestamo.ToString("dd/MM/yyyy")</dd>
+                </div>
+                <div class="details-row">
+                    <dt>Fecha de vencimiento</dt>
+                    <dd>
+                        @Model.FechaVencimiento.ToString("dd/MM/yyyy")
+                        @if (estaVencido)
+                        {
+                            <span class="badge bg-danger ms-2">
+                                @diasAtraso día(s) de atraso
+                            </span>
+                        }
+                    </dd>
+                </div>
+            </dl>
+
+            @if (estaVencido)
+            {
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    <strong>Este préstamo está vencido.</strong>
+                    Se generará una multa de <strong>$500 por día de atraso</strong>.
+                    <br />
+                    Multa estimada: <strong>@multaEstimada.ToString("C", new
+                                                            System.Globalization.CultureInfo("es-AR"))</strong>
+                </div>
+            }
+        </div>
+
+        <form asp-action="Devolucion" asp-route-id="@Model.IdPrestamo" method="post" class="edit-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="edit-fields">
+                <div class="form-group edit-email-field">
+                    <label for="fechaDevolucion" class="control-label">Fecha de devolución</label>
+                    <input type="date" id="fechaDevolucion" name="fechaDevolucion" class="form-control"
+                           value="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           required />
+                    <span class="text-danger" id="errorFecha"></span>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-check" aria-hidden="true"></i> Confirmar devolución
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

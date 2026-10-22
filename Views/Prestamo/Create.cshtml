@@ -1,0 +1,120 @@
+@model Cuello_BiblioTeca_LAB2.Models.Prestamo
+
+@{
+    ViewData["Title"] = "Nuevo Préstamo";
+}
+
+<section class="edit-page">
+    <div class="edit-card reservation-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-book-open-reader"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión de alquileres</p>
+                <h1>Nuevo préstamo</h1>
+                <p class="edit-description">Complete los datos para registrar un préstamo.</p>
+            </div>
+        </header>
+
+        <form asp-action="Create" class="edit-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="edit-fields reservation-fields">
+                <div class="form-group reservation-wide-field">
+                    <label asp-for="IdUsuario" class="control-label"></label>
+                    <select asp-for="IdUsuario" class="form-control" id="socioSelect"></select>
+                    <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                </div>
+
+                <div class="form-group reservation-wide-field">
+                    <label asp-for="CodigoEjemplar" class="control-label"></label>
+                    <select asp-for="CodigoEjemplar" class="form-control" id="ejemplarSelect"></select>
+                    <span asp-validation-for="CodigoEjemplar" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="FechaPrestamo" class="control-label"></label>
+                    <input asp-for="FechaPrestamo" class="form-control" type="date" id="fechaPrestamo" />
+                    <span asp-validation-for="FechaPrestamo" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="FechaVencimiento" class="control-label"></label>
+                    <input asp-for="FechaVencimiento" class="form-control" type="date" id="fechaVencimiento" readonly />
+                    <span asp-validation-for="FechaVencimiento" class="text-danger"></span>
+                    <small class="text-muted">Se calcula automáticamente: 15 días después de la fecha de
+                        préstamo.</small>
+                    </div>
+                </div>
+
+                <div class="edit-actions">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-save" aria-hidden="true"></i> Registrar préstamo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+        <script>
+            $(document).ready(function () {
+                $('#socioSelect').select2({
+                    language: 'es',
+                    theme: 'bootstrap-5',
+                    placeholder: 'Buscar socio por DNI o nombre...',
+                    minimumInputLength: 2,
+                    ajax: {
+                        url: '@Url.Action("BuscarSocios", "Usuario")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: (params) => ({ term: params.term }),
+                        processResults: (data) => ({ results: data })
+                    }
+                });
+
+                $('#ejemplarSelect').select2({
+                    language: 'es',
+                    theme: 'bootstrap-5',
+                    placeholder: 'Buscar ejemplar por título, ISBN o código...',
+                    minimumInputLength: 2,
+                    ajax: {
+                        url: '@Url.Action("BuscarDisponibles", "Ejemplar")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: (params) => ({ term: params.term }),
+                        processResults: (data) => ({ results: data })
+                    }
+                });
+
+                const DIAS_PRESTAMO = 15;
+                const inputFechaPrestamo = document.getElementById('fechaPrestamo');
+                const inputFechaVencimiento = document.getElementById('fechaVencimiento');
+
+                function calcularVencimiento() {
+                    const fechaPrestamo = inputFechaPrestamo.value;
+                    if (!fechaPrestamo) return;
+
+                    
+                    const fecha = new Date(fechaPrestamo + 'T00:00:00');
+                    fecha.setDate(fecha.getDate() + DIAS_PRESTAMO);
+
+                    const year = fecha.getFullYear();
+                    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+                    const day = String(fecha.getDate()).padStart(2, '0');
+
+                    inputFechaVencimiento.value = `${year}-${month}-${day}`;
+                }
+                
+                calcularVencimiento();
+
+                if (inputFechaPrestamo) {
+                    inputFechaPrestamo.addEventListener('change', calcularVencimiento);
+                    inputFechaPrestamo.addEventListener('input', calcularVencimiento);
+                }
+            });
+        </script>
+    }

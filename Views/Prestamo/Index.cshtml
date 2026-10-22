@@ -1,0 +1,254 @@
+@model IEnumerable<Cuello_BiblioTeca_LAB2.Models.Prestamo>
+
+@{
+    ViewData["Title"] = "Préstamos";
+    var Pagina = (int)(ViewBag.Pagina ?? 1);
+    var TotalPaginas = (int)(ViewBag.TotalPaginas ?? 1);
+    var TotalRegistros = (int)(ViewBag.TotalRegistros ?? 0);
+    var busquedaActual = ViewBag.Busqueda as string;
+    var estadoActual = ViewBag.Estado as string;
+    var soloVencidos = (bool)(ViewBag.SoloVencidos ?? false);
+    var hayFiltros = !string.IsNullOrWhiteSpace(busquedaActual)
+                     || !string.IsNullOrWhiteSpace(estadoActual)
+                     || soloVencidos;
+
+    int desde = Math.Max(1, Math.Min(Pagina - 2, TotalPaginas - 4));
+    int hasta = Math.Min(TotalPaginas, desde + 4);
+}
+
+<section class="index-page">
+    <header class="index-header">
+        <div>
+            <p class="index-eyebrow">Gestión de alquileres</p>
+            <h1>Préstamos</h1>
+            <p class="index-description">Administre los préstamos de libros a socios.</p>
+        </div>
+        <a class="btn btn-success index-create-button" asp-action="Create">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i><span>Nuevo préstamo</span>
+        </a>
+    </header>
+
+    @if (ViewBag.Mensaje != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @ViewBag.Mensaje
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="index-table-wrapper mb-3" style="padding: 1rem;">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Búsqueda</label>
+                <input type="text" name="busqueda" value="@busquedaActual" class="form-control"
+                       placeholder="Socio, DNI, título o ISBN..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-control">
+                    <option value="">Todos</option>
+                    <option value="Activo" selected="@(estadoActual == "Activo")">Activo</option>
+                    <option value="Devuelto" selected="@(estadoActual == "Devuelto")">Devuelto</option>
+                    <option value="Vencido" selected="@(estadoActual == "Vencido")">Vencido</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check mt-4">
+                    <input type="checkbox" name="soloVencidos" value="true" class="form-check-input" id="soloVencidos"
+                    @(soloVencidos ? "checked" : "") />
+                    <label class="form-check-label" for="soloVencidos">Solo vencidos</label>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                    <i class="fa-solid fa-eraser me-1"></i> Limpiar
+                </a>
+            </div>
+        </form>
+        @if (hayFiltros)
+        {
+            <small class="text-muted d-block mt-2">
+                Mostrando @TotalRegistros resultado(s) para los filtros aplicados.
+            </small>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            @(hayFiltros
+                ? "No se encontraron préstamos con los filtros aplicados."
+                : "No hay préstamos registrados.")
+        </div>
+    }
+    else
+    {
+        <div class="index-table-wrapper">
+            <table class="table index-table">
+                <thead>
+                    <tr>
+                        <th>@Html.DisplayNameFor(m => m.IdPrestamo)</th>
+                        <th>Socio</th>
+                        <th>Libro</th>
+                        <th>@Html.DisplayNameFor(m => m.FechaPrestamo)</th>
+                        <th>@Html.DisplayNameFor(m => m.FechaVencimiento)</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(m => item.IdPrestamo)</td>
+                            <td>
+                                @(item.Socio?.ToString() ?? "—")
+                                <br />
+                                <small class="text-muted">DNI: @(item.Socio?.Dni ?? "—")</small>
+                            </td>
+                            <td>
+                                @(item.Ejemplar?.LibroTitulo ?? "—")
+                                <br />
+                                <small class="text-muted">Ejemplar #@item.CodigoEjemplar</small>
+                            </td>
+                            <td>@item.FechaPrestamo.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @item.FechaVencimiento.ToString("dd/MM/yyyy")
+                                @if (item.EstaVencido)
+                                {
+                                    <br />
+                                    <small class="text-danger">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        @item.DiasAtraso día(s) de atraso
+                                    </small>
+                                }
+                            </td>
+                            <td>
+                                @if (item.Estado == "Activo")
+                                {
+                                    @if (item.EstaVencido)
+                                    {
+                                        <span class="badge bg-danger">Vencido</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary">Activo</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Devuelto</span>
+                                    @if (item.FechaDevolucion.HasValue)
+                                    {
+                                        <br />
+                                        <small class="text-muted">@item.FechaDevolucion.Value.ToString("dd/MM/yyyy")</small>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                <div class="index-actions" role="group">
+                                    <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.IdPrestamo" title="Ver">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    @if (item.Estado == "Activo")
+                                    {
+                                        <a class="btn btn-warning btn-sm" asp-action="Devolucion" asp-route-id="@item.IdPrestamo"
+                                           title="Registrar devolución">
+                                            <i class="fa-solid fa-rotate-left"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        @if (TotalPaginas > 1)
+        {
+            <nav aria-label="Paginación de préstamos">
+                <ul class="pagination justify-content-center">
+                    @if (Pagina > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina - 1)"
+                               asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoActual"
+                               asp-route-soloVencidos="@soloVencidos">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+                        </li>
+                    }
+
+                    @if (desde > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="1" asp-route-busqueda="@busquedaActual"
+                               asp-route-estado="@estadoActual" asp-route-soloVencidos="@soloVencidos">1</a>
+                        </li>
+                        @if (desde > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @for (int i = desde; i <= hasta; i++)
+                    {
+                        <li class="page-item @(i == Pagina ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-busqueda="@busquedaActual"
+                               asp-route-estado="@estadoActual" asp-route-soloVencidos="@soloVencidos">@i</a>
+                        </li>
+                    }
+
+                    @if (hasta < TotalPaginas)
+                    {
+                        @if (hasta < TotalPaginas - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@TotalPaginas"
+                               asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoActual"
+                               asp-route-soloVencidos="@soloVencidos">@TotalPaginas</a>
+                        </li>
+                    }
+
+                    @if (Pagina < TotalPaginas)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina + 1)"
+                               asp-route-busqueda="@busquedaActual" asp-route-estado="@estadoActual"
+                               asp-route-soloVencidos="@soloVencidos">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</section>

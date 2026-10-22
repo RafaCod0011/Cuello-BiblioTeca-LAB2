@@ -376,6 +376,39 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
             }
         }
 
+        // GET: Usuario/BuscarSocios?term=...
+        [HttpGet]
+        public IActionResult BuscarSocios(string term)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+                    return Json(new List<object>());
+
+                // Buscar usuarios con rol "Socio" (Rol = 3)
+                var resultados = repositorio.ObtenerLista(1, int.MaxValue)
+                    .Where(u => u.Rol == 3) // Solo socios
+                    .Where(u => 
+                        u.Dni.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                        u.Nombre.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                        u.Apellido.Contains(term, StringComparison.OrdinalIgnoreCase))
+                    .Select(u => new
+                    {
+                        id = u.Id,
+                        text = $"{u.Nombre} {u.Apellido} (DNI: {u.Dni})"
+                    })
+                    .Take(20)
+                    .ToList();
+
+                return Json(resultados);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error al buscar socios");
+                return Json(new List<object>());
+            }
+        }
+
         private string HashearClave(string clave)
         {
             string salt = config["Salt"] ?? "";
