@@ -1,0 +1,81 @@
+@model Cuello_BiblioTeca_LAB2.Models.Reserva
+
+@{
+    ViewData["Title"] = $"Reserva #{Model.IdReserva}";
+}
+
+<section class="details-page">
+    <div class="details-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-bookmark"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión</p>
+                <h1>Reserva #@Model.IdReserva</h1>
+                <p class="edit-description">Información de la reserva.</p>
+            </div>
+        </header>
+
+        <div class="row details-layout">
+            <div class="col-md-12">
+                <dl class="details-list">
+                    <div class="details-row">
+                        <dt>Socio</dt>
+                        <dd>@(Model.SocioNombre ?? "—") (DNI: @(Model.SocioDni ?? "—"))</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>Libro</dt>
+                        <dd>@(Model.LibroTitulo ?? "—")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.FechaReserva)</dt>
+                        <dd>@Model.FechaReserva.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.FechaVencimiento)</dt>
+                        <dd>@(Model.FechaVencimiento?.ToString("dd/MM/yyyy HH:mm") ?? "—")</dd>
+                    </div>
+                    <div class="details-row">
+                        <dt>@Html.DisplayNameFor(m => m.Estado)</dt>
+                        <dd>
+                            @switch (Model.Estado)
+                            {
+                                case "Pendiente":
+                                    if (Model.EstaExpirada)
+                                    {
+                                        <span class="badge bg-warning text-dark">Expirada</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary">Pendiente</span>
+                                    }
+                                    break;
+                                case "Cumplida":
+                                    <span class="badge bg-success">Cumplida</span>
+                                    break;
+                                case "Cancelada":
+                                    <span class="badge bg-secondary">Cancelada</span>
+                                    break;
+                            }
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="details-actions">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
+            </a>
+            @if (Model.Estado == "Pendiente")
+            {
+                <form asp-action="Cancelar" asp-route-id="@Model.IdReserva" method="post" class="d-inline"
+                      onsubmit="return confirm('¿Cancelar esta reserva?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-ban me-2"></i>Cancelar reserva
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</section>

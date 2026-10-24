@@ -11,17 +11,22 @@
         <div>
             <p class="index-eyebrow">Gestión de perfil</p>
             <h1>{{ modo_actual == modos.detalle ? 'Mi perfil' : 'Editar perfil' }}</h1>
-            <p class="index-description">Detalles y edición de información del usuario.</p>
+            <p class="index-description">
+                @(esAdmin ? "Detalles y edición de información del usuario." : "Detalles de mi perfil")
+            </p>
         </div>
     </header>
 
     <div class="user-detail-card">
         <div v-if="modo_actual == modos.detalle" class="user-detail-body">
             <dl class="details-list user-detail-list">
-                <div class="details-row">
-                    <dt>ID</dt>
-                    <dd>{{ usuario.id }}</dd>
-                </div>
+                @if (esAdmin)
+                {
+                    <div class="details-row">
+                        <dt>ID</dt>
+                        <dd>{{ usuario.id }}</dd>
+                    </div>
+                }
                 <div class="details-row">
                     <dt>Nombre</dt>
                     <dd>{{ usuario.nombre }}</dd>

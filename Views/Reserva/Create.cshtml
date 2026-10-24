@@ -1,0 +1,90 @@
+@model Cuello_BiblioTeca_LAB2.Models.Reserva
+
+@{
+    ViewData["Title"] = "Nueva Reserva";
+}
+
+<section class="edit-page">
+    <div class="edit-card">
+        <header class="edit-card-header">
+            <div class="edit-icon" aria-hidden="true"><i class="fa-solid fa-bookmark"></i></div>
+            <div>
+                <p class="edit-eyebrow">Gestión</p>
+                <h1>Nueva reserva</h1>
+                <p class="edit-description">Reserve un libro que no tenga ejemplares disponibles.</p>
+            </div>
+        </header>
+
+        <form asp-action="Create" class="edit-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="edit-fields">
+
+                @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+                {
+                    <div class="form-group edit-email-field">
+                        <label asp-for="IdUsuario" class="control-label">Socio</label>
+                        <select asp-for="IdUsuario" class="form-control" id="socioSelect"></select>
+                        <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                    </div>
+                }
+                <div class="form-group edit-email-field">
+                    <label asp-for="ISBN" class="control-label"></label>
+                    <select asp-for="ISBN" class="form-control" id="libroSelect">
+                        @if (ViewBag.LibroId != null)
+                        {
+                            <option value="@ViewBag.LibroId" selected>@ViewBag.LibroSeleccionado</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ISBN" class="text-danger"></span>
+                    <small class="text-muted">Solo se pueden reservar libros sin ejemplares disponibles.</small>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fa-solid fa-save" aria-hidden="true"></i> Crear reserva
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('#libroSelect').select2({
+                language: 'es',
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar libro por título o ISBN...',
+                minimumInputLength: 2,
+                ajax: {
+                    url: '@Url.Action("Buscar", "Libro")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({ term: params.term }),
+                    processResults: (data) => ({ results: data })
+                }
+            });
+            if ($('#socioSelect').length > 0) {
+                $('#socioSelect').select2({
+                    language: 'es',
+                    theme: 'bootstrap-5',
+                    placeholder: 'Buscar socio por DNI o nombre...',
+                    minimumInputLength: 2,
+                    ajax: {
+                        url: '@Url.Action("BuscarSocios", "Usuario")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: (params) => ({ term: params.term }),
+                        processResults: (data) => ({ results: data })
+                    }
+                });
+            }
+        });
+    </script>
+}

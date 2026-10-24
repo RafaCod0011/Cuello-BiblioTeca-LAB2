@@ -45,6 +45,7 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
         }
 
         // GET: Autor/Create
+        [Authorize(Policy = "Bibliotecario")]
         public ActionResult Create()
         {
             try
@@ -61,6 +62,7 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
         // POST: Autor/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "Bibliotecario")]
         public ActionResult Create(Autor autor)
         {
             try
@@ -82,6 +84,7 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
         }
 
         // GET: Autor/Edit/5
+        [Authorize(Policy = "Bibliotecario")]
         public ActionResult Edit(int id)
         {
             try
@@ -101,6 +104,7 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
         // POST: Autor/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "Bibliotecario")]
         public ActionResult Edit(int id, Autor entidad)
         {
             try
@@ -175,6 +179,7 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
         }
 
         // GET: Autor/Ver/5
+        [Authorize(Policy = "Bibliotecario")]
         public ActionResult Ver(int id)
         {
             try

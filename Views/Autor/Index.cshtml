@@ -11,11 +11,18 @@
         <div>
             <p class="index-eyebrow">Catálogo</p>
             <h1>Autores</h1>
-            <p class="index-description">Administre los autores del catálogo.</p>
+            <p class="index-description">
+                @(User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")
+                    ? "Administre los autores del catálogo."
+                    : "Consulte los autores disponibles.")
+            </p>
         </div>
-        <a class="btn btn-success index-create-button" asp-action="Create">
-            <i class="fa-solid fa-plus" aria-hidden="true"></i><span>Nuevo autor</span>
-        </a>
+        @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+        {
+            <a class="btn btn-success index-create-button" asp-action="Create">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i><span>Nuevo autor</span>
+            </a>
+        }
     </header>
 
     @if (ViewBag.Mensaje != null)
@@ -55,13 +62,19 @@
                         <td>@(item.Nacionalidad ?? "—")</td>
                         <td>
                             <div class="index-actions" role="group">
-                                <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.IdAutor" title="Ver">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                                <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.IdAutor"
-                                   title="Editar">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
+                                @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+                                {
+                                    <a class="btn btn-info btn-sm" asp-action="Ver" asp-route-id="@item.IdAutor" title="Ver">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                }
+                                @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+                                {
+                                    <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@item.IdAutor"
+                                       title="Editar">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                }
                                 <a class="btn btn-success btn-sm" asp-controller="Libro" asp-action="PorAutor"
                                    asp-route-id="@item.IdAutor" title="Ver libros del autor">
                                     <i class="fa-solid fa-book"></i>

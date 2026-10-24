@@ -4,7 +4,11 @@
 
 <div class="dashboard-header text-center">
     <h1>Panel Principal</h1>
-    <p class="text-muted">Sistema de Gestión de Biblioteca</p>
+    <p class="text-muted">
+        @(User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")
+                    ? "Sistema de Gestión de Biblioteca."
+                    : "Bienvenido a BiblioTeca, aquí puede consultar el catálogo de libros y gestionar sus préstamos y reservas.")
+    </p>
 </div>
 
 <div class="row g-4 justify-content-center">

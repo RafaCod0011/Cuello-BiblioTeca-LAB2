@@ -38,9 +38,12 @@
             <a asp-action="Index" class="btn btn-secondary">
                 <i class="fa-solid fa-arrow-left me-2"></i>Volver a la lista
             </a>
-            <a asp-action="Edit" asp-route-id="@Model.IdCategoria" class="btn btn-primary">
-                <i class="fa-solid fa-pen me-2"></i>Editar
-            </a>
+            @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.IdCategoria" class="btn btn-primary">
+                    <i class="fa-solid fa-pen me-2"></i>Editar
+                </a>
+            }
         </div>
     </div>
 </section>

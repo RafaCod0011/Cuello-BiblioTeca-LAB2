@@ -11,7 +11,11 @@
         <div>
             <p class="index-eyebrow">Catálogo</p>
             <h1>Libros</h1>
-            <p class="index-description">Administre el catálogo de libros del sistema.</p>
+            <p class="index-description">
+                @(User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")
+                    ? "Administre el catálogo de libros del sistema."
+                    : "Consulte los libros disponibles.")
+            </p>
         </div>
         @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
         {
