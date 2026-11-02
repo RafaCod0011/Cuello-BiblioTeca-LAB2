@@ -390,6 +390,100 @@ namespace Cuello_BiblioTeca_LAB2.Models
             }
         }
 
+                public IList<Libro> BuscarConFiltros(string? busqueda, string? autor, int? idCategoria, int? minPaginas, int? maxPaginas, int pagina, int tamano)
+        {
+            var res = new List<Libro>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                var (where, parametros) = ConstruirFiltros(busqueda, autor, idCategoria, minPaginas, maxPaginas);
+
+                string sql = $@"
+                    SELECT l.ISBN, l.Titulo, l.NroPaginas, l.Editorial, l.AnioPublicacion, 
+                        l.Sinopsis, l.Portada, l.IdCategoria,
+                        c.Nombre AS CategoriaNombre,
+                        (SELECT GROUP_CONCAT(CONCAT(a.Nombre, ' ', a.Apellido) SEPARATOR ', ')
+                            FROM Escribe e 
+                            INNER JOIN Autor a ON e.IdAutor = a.IdAutor 
+                            WHERE e.ISBN = l.ISBN) AS AutoresTexto,
+                        (SELECT COUNT(*) FROM Ejemplar ej WHERE ej.ISBN = l.ISBN) AS TotalEjemplares,
+                        (SELECT COUNT(*) FROM Ejemplar ej WHERE ej.ISBN = l.ISBN AND ej.Estado = 'Disponible') AS EjemplaresDisponibles
+                    FROM Libro l
+                    LEFT JOIN Categoria c ON l.IdCategoria = c.IdCategoria
+                    WHERE 1=1 {where}
+                    ORDER BY l.Titulo ASC
+                    LIMIT {tamano} OFFSET {(pagina - 1) * tamano}";
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    foreach (var p in parametros)
+                        command.Parameters.AddWithValue(p.Key, p.Value);
+
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                        res.Add(MapLibro(reader));
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public int ContarConFiltros(string? busqueda, string? autor, int? idCategoria, int? minPaginas, int? maxPaginas)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                var (where, parametros) = ConstruirFiltros(busqueda, autor, idCategoria, minPaginas, maxPaginas);
+                string sql = $"SELECT COUNT(*) FROM Libro l WHERE 1=1 {where}";
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    foreach (var p in parametros)
+                        command.Parameters.AddWithValue(p.Key, p.Value);
+
+                    connection.Open();
+                    return Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+        }
+
+        // Helper para  WHERE dinámico
+        private (string where, Dictionary<string, object> parametros) ConstruirFiltros(
+            string? busqueda, string? autor, int? idCategoria, int? minPaginas, int? maxPaginas)
+        {
+            var where = "";
+            var parametros = new Dictionary<string, object>();
+
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                where += " AND (l.Titulo LIKE @busqueda OR l.ISBN LIKE @busqueda)";
+                parametros["@busqueda"] = "%" + busqueda + "%";
+            }
+            if (!string.IsNullOrWhiteSpace(autor))
+            {
+                where += @" AND EXISTS (SELECT 1 FROM Escribe e2 
+                            INNER JOIN Autor a2 ON e2.IdAutor = a2.IdAutor 
+                            WHERE e2.ISBN = l.ISBN AND (a2.Nombre LIKE @autor OR a2.Apellido LIKE @autor))";
+                parametros["@autor"] = "%" + autor + "%";
+            }
+            if (idCategoria.HasValue)
+            {
+                where += " AND l.IdCategoria = @idCategoria";
+                parametros["@idCategoria"] = idCategoria.Value;
+            }
+            if (minPaginas.HasValue)
+            {
+                where += " AND l.NroPaginas >= @minPaginas";
+                parametros["@minPaginas"] = minPaginas.Value;
+            }
+            if (maxPaginas.HasValue)
+            {
+                where += " AND l.NroPaginas <= @maxPaginas";
+                parametros["@maxPaginas"] = maxPaginas.Value;
+            }
+
+            return (where, parametros);
+        }
+
         
         private Libro MapLibro(MySqlDataReader reader)
         {

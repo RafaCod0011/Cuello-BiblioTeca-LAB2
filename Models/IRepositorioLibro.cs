@@ -28,5 +28,8 @@ namespace Cuello_BiblioTeca_LAB2.Models
 
         IList<Libro> ObtenerPorAutor(int idAutor, int pagina, int tamano);
         int ContarPorAutor(int idAutor);
+
+        IList<Libro> BuscarConFiltros(string? busqueda, string? autor, int? idCategoria, int? minPaginas, int? maxPaginas, int pagina, int tamano);
+        int ContarConFiltros(string? busqueda, string? autor, int? idCategoria, int? minPaginas, int? maxPaginas);
     }
 }

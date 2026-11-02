@@ -2,8 +2,26 @@
 
 @{
     ViewData["Title"] = "Libros";
-    var Pagina = ViewBag.Pagina ?? 1;
-    var TotalPaginas = ViewBag.TotalPaginas ?? 1;
+    var Pagina = (int)(ViewBag.Pagina ?? 1);
+    var TotalPaginas = (int)(ViewBag.TotalPaginas ?? 1);
+    var TotalRegistros = (int)(ViewBag.TotalRegistros ?? 0);
+    var categorias = (IList<Cuello_BiblioTeca_LAB2.Models.Categoria>)ViewBag.Categorias
+                     ?? new List<Cuello_BiblioTeca_LAB2.Models.Categoria>();
+    
+    var busquedaActual = ViewBag.Busqueda as string;
+    var autorActual = ViewBag.Autor as string;
+    var categoriaActual = ViewBag.IdCategoria as int?;
+    var minPaginasActual = ViewBag.MinPaginas as int?;
+    var maxPaginasActual = ViewBag.MaxPaginas as int?;
+    
+    var hayFiltros = !string.IsNullOrWhiteSpace(busquedaActual)
+                     || !string.IsNullOrWhiteSpace(autorActual)
+                     || categoriaActual.HasValue
+                     || minPaginasActual.HasValue
+                     || maxPaginasActual.HasValue;
+
+    int desde = Math.Max(1, Math.Min(Pagina - 2, TotalPaginas - 4));
+    int hasta = Math.Min(TotalPaginas, desde + 4);
 }
 
 <section class="index-page">
@@ -11,11 +29,7 @@
         <div>
             <p class="index-eyebrow">Catálogo</p>
             <h1>Libros</h1>
-            <p class="index-description">
-                @(User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")
-                    ? "Administre el catálogo de libros del sistema."
-                    : "Consulte los libros disponibles.")
-            </p>
+            <p class="index-description">Administre el catálogo de libros del sistema.</p>
         </div>
         @if (User.IsInRole("Administrador") || User.IsInRole("Bibliotecario"))
         {
@@ -41,9 +55,59 @@
         </div>
     }
 
+    <!-- Filtros -->
+    <div class="index-table-wrapper mb-3" style="padding: 1rem;">
+        <form asp-action="Index" method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Título o ISBN</label>
+                <input type="text" name="busqueda" value="@busquedaActual" class="form-control"
+                       placeholder="Buscar título..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Autor</label>
+                <input type="text" name="autor" value="@autorActual" class="form-control" placeholder="Ej: Orwell" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Categoría</label>
+                <select name="idCategoria" id="filtroCategoria" class="form-control">
+                    @if (categoriaActual.HasValue)
+                    {
+                        <option value="@categoriaActual" selected>@ViewBag.CategoriaNombre</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Págs. mín</label>
+                <input type="number" name="minPaginas" value="@minPaginasActual" min="1" class="form-control" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Págs. máx</label>
+                <input type="number" name="maxPaginas" value="@maxPaginasActual" min="1" class="form-control" />
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                    <i class="fa-solid fa-eraser me-1"></i> Limpiar
+                </a>
+            </div>
+        </form>
+        @if (hayFiltros)
+        {
+            <small class="text-muted d-block mt-2">
+                Mostrando @TotalRegistros resultado(s) para los filtros aplicados.
+            </small>
+        }
+    </div>
+
     @if (!Model.Any())
     {
-        <div class="alert alert-info">No hay libros registrados.</div>
+        <div class="alert alert-info">
+            @(hayFiltros
+                ? "No se encontraron libros con los filtros aplicados."
+                : "No hay libros registrados.")
+        </div>
     }
     else
     {
@@ -120,46 +184,106 @@
             }
         </div>
 
-        <!-- Paginación -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                @if (Pagina > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina - 1)">
-                            <i class="fa-solid fa-angles-left"></i>
-                        </a>
-                    </li>
-                }
-                else
-                {
-                    <li class="page-item disabled">
-                        <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
-                    </li>
-                }
+        <!-- Paginación optimizada con filtros -->
+        @if (TotalPaginas > 1)
+        {
+            <nav aria-label="Paginación de libros">
+                <ul class="pagination justify-content-center">
+                    @if (Pagina > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina - 1)"
+                               asp-route-busqueda="@busquedaActual" asp-route-autor="@autorActual"
+                               asp-route-idCategoria="@categoriaActual" asp-route-minPaginas="@minPaginasActual"
+                               asp-route-maxPaginas="@maxPaginasActual">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+                        </li>
+                    }
 
-                @for (int i = 1; i <= TotalPaginas; i++)
-                {
-                    <li class="page-item @(i == Pagina ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-pagina="@i">@i</a>
-                    </li>
-                }
+                    @if (desde > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="1" asp-route-busqueda="@busquedaActual"
+                               asp-route-autor="@autorActual" asp-route-idCategoria="@categoriaActual"
+                               asp-route-minPaginas="@minPaginasActual" asp-route-maxPaginas="@maxPaginasActual">1</a>
+                        </li>
+                        @if (desde > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
 
-                @if (Pagina < TotalPaginas)
-                {
-                    <li class="page-item">
-                        <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina + 1)">
-                            <i class="fa-solid fa-angles-right"></i>
-                        </a>
-                    </li>
-                }
-                else
-                {
-                    <li class="page-item disabled">
-                        <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
-                    </li>
-                }
-            </ul>
-        </nav>
+                    @for (int i = desde; i <= hasta; i++)
+                    {
+                        <li class="page-item @(i == Pagina ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-busqueda="@busquedaActual"
+                               asp-route-autor="@autorActual" asp-route-idCategoria="@categoriaActual"
+                               asp-route-minPaginas="@minPaginasActual" asp-route-maxPaginas="@maxPaginasActual">@i</a>
+                        </li>
+                    }
+
+                    @if (hasta < TotalPaginas)
+                    {
+                        @if (hasta < TotalPaginas - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@TotalPaginas"
+                               asp-route-busqueda="@busquedaActual" asp-route-autor="@autorActual"
+                               asp-route-idCategoria="@categoriaActual" asp-route-minPaginas="@minPaginasActual"
+                               asp-route-maxPaginas="@maxPaginasActual">@TotalPaginas</a>
+                        </li>
+                    }
+
+                    @if (Pagina < TotalPaginas)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(Pagina + 1)"
+                               asp-route-busqueda="@busquedaActual" asp-route-autor="@autorActual"
+                               asp-route-idCategoria="@categoriaActual" asp-route-minPaginas="@minPaginasActual"
+                               asp-route-maxPaginas="@maxPaginasActual">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
     }
 </section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            
+            $('#filtroCategoria').select2({
+                language: 'es',
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar categoría...',
+                allowClear: true,
+                minimumInputLength: 1,
+                ajax: {
+                    url: '@Url.Action("Buscar", "Categoria")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: (params) => ({ term: params.term }),
+                    processResults: (data) => ({ results: data })
+                }
+            });
+        });
+    </script>
+}

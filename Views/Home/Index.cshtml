@@ -7,7 +7,7 @@
     <p class="text-muted">
         @(User.IsInRole("Administrador") || User.IsInRole("Bibliotecario")
                     ? "Sistema de Gestión de Biblioteca."
-                    : "Bienvenido a BiblioTeca, aquí puede consultar el catálogo de libros y gestionar sus préstamos y reservas.")
+                    : "Bienvenido a BiblioTeca, aquí puede consultar el catálogo de libros y gestionar sus reservas.")
     </p>
 </div>
 
@@ -67,10 +67,6 @@
                         <i class="fa-solid fa-list"></i>
                         Ver todos
                     </a>
-                    <a asp-controller="Prestamo" asp-action="Vencidos" class="dashboard-action dashboard-action-link">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        Vencidos
-                    </a>
                 </div>
             </div>
         </div>
@@ -86,10 +82,6 @@
                     <a asp-controller="Multa" asp-action="Index" class="dashboard-action dashboard-action-link">
                         <i class="fa-solid fa-list"></i>
                         Ver todas
-                    </a>
-                    <a asp-controller="Multa" asp-action="Pendientes" class="dashboard-action dashboard-action-link">
-                        <i class="fa-solid fa-clock"></i>
-                        Pendientes
                     </a>
                 </div>
             </div>
@@ -108,10 +100,6 @@
                 <a asp-controller="Reserva" asp-action="Index" class="dashboard-action dashboard-action-link">
                     <i class="fa-solid fa-list"></i>
                     Ver todas
-                </a>
-                <a asp-controller="Reserva" asp-action="Pendientes" class="dashboard-action dashboard-action-link">
-                    <i class="fa-solid fa-clock"></i>
-                    Pendientes
                 </a>
             </div>
         </div>

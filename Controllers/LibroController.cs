@@ -33,16 +33,52 @@ namespace Cuello_BiblioTeca_LAB2.Controllers
         }
 
         // GET: Libro/Index
-        public IActionResult Index(int pagina = 1)
+        public IActionResult Index(int pagina = 1, string? busqueda = null, string? autor = null, 
+                                int? idCategoria = null, int? minPaginas = null, int? maxPaginas = null)
         {
             try
             {
                 var tamaño = 6;
-                var lista = repositorio.ObtenerLista(Math.Max(pagina, 1), tamaño);
+                pagina = Math.Max(pagina, 1);
+
+                ViewBag.Busqueda = busqueda;
+                ViewBag.Autor = autor;
+                ViewBag.IdCategoria = idCategoria;
+
+                if (idCategoria.HasValue)
+                {
+                    var cat = repositorioCategoria.ObtenerPorId(idCategoria.Value);
+                    ViewBag.CategoriaNombre = cat?.Nombre ?? "Categoría seleccionada";
+                }
+                
+                ViewBag.MinPaginas = minPaginas;
+                ViewBag.MaxPaginas = maxPaginas;
+
+                IList<Libro> lista;
+                int total;
+
+                bool sinFiltros = string.IsNullOrWhiteSpace(busqueda) 
+                                && string.IsNullOrWhiteSpace(autor) 
+                                && !idCategoria.HasValue 
+                                && !minPaginas.HasValue 
+                                && !maxPaginas.HasValue;
+
+                if (sinFiltros)
+                {
+                    lista = repositorio.ObtenerLista(pagina, tamaño);
+                    total = repositorio.ObtenerCantidad();
+                }
+                else
+                {
+                    lista = repositorio.BuscarConFiltros(busqueda, autor, idCategoria, minPaginas, maxPaginas, pagina, tamaño);
+                    total = repositorio.ContarConFiltros(busqueda, autor, idCategoria, minPaginas, maxPaginas);
+                }
+
                 ViewBag.Pagina = pagina;
-                var total = repositorio.ObtenerCantidad();
                 ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
                 ViewBag.TotalRegistros = total;
+
+                ViewBag.Categorias = repositorioCategoria.ObtenerLista(1, int.MaxValue);
 
                 if (TempData.ContainsKey("Mensaje"))
                     ViewBag.Mensaje = TempData["Mensaje"];
