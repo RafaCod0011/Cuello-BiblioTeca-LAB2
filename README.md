@@ -33,10 +33,10 @@ A continuación se detalla dónde y cómo se implementaron los requerimientos m�
 | Requerimiento Mínimo                              |   Estado    | Enlace al Código / Controladores                                     | Evidencia (Captura / GIF / Video)                                    |
 | :------------------------------------------------ | :---------: | :------------------------------------------------------------------- | :------------------------------------------------------------------- |
 | **1. Modelo de Datos: 6+ tablas, 1:N y N:M**      | ✅ Cumplido | [Script SQL](./Database/script.sql) / [Modelos](./Models/)           | DER adjunto en `/docs/der.png`. Relación N:M en tabla `Escribe`.     |
-| **2. Login, Roles y Avatar**                      | ✅ Cumplido | [UsuarioController.cs](./Controllers/UsuarioController.cs)           | [🖼️ Ver Captura de Perfil](./docs/Evidencias/perfil.png)                        |
-| **3. Manejo de Archivos (Extra al Avatar)**       | ✅ Cumplido | [LibroController.cs](./Controllers/LibroController.cs)               | <a href="https://youtu.be/Qrbn31PE5bk" target="_blank">🎥 Portada de Libro</a>       |
+| **2. Login, Roles y Avatar**                      | ✅ Cumplido | [UsuarioController.cs](./Controllers/UsuarioController.cs)           | [🖼️ Ver Captura de Perfil](./docs/Evidencias/Perfil.png)                        |
+| **3. Manejo de Archivos (Extra al Avatar)**       | ✅ Cumplido | [LibroController.cs](./Controllers/LibroController.cs)               | [🎥 Ver Video: Portada de Libro](https://youtu.be/Qrbn31PE5bk)  |
 | **4. ABM en Vue.js + AJAX (Sin recargar página)** | ✅ Cumplido | [Usuario/Index.cshtml](./Views/Usuario/Index.cshtml)                 | [🎥 Ver Video: ABM Usuarios](https://youtu.be/RIff_OzWZNs)           |
-| **5. Paginado por Servidor**                      | ✅ Cumplido | [LibroController.cs](./Controllers/LibroController.cs)               | [🖼️ Ver Captura de Paginación](./docs/Evidencias/paginacion.png)     |
+| **5. Paginado por Servidor**                      | ✅ Cumplido | [LibroController.cs](./Controllers/LibroController.cs)               | [🖼️ Ver Captura de Paginación](./docs/Evidencias/Paginacion.png)     |
 | **6. Búsqueda Asíncrona (Select2 AJAX)**          | ✅ Cumplido | [Prestamo/Create.cshtml](./Views/Prestamo/Create.cshtml)             | [🎥 Ver Video: Búsqueda](https://youtu.be/ijV8LuTL-cQ)               |
 | **7. Web API REST con JWT**                       | ✅ Cumplido | [Api/LibroApiController.cs](./Controllers/Api/LibroApiController.cs) | [🖼️ Ver Captura de Bearer Token](./docs/Evidencias/bearer-token.png) |
 
