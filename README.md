@@ -24,7 +24,7 @@ Sistema web desarrollado en **ASP.NET Core MVC** que resuelve la problemática d
 
 ## 📐 Modelo de Datos
 
-![Diagrama Entidad-Relación](./docs/evidencias/der.png)
+![Diagrama Entidad-Relación](./docs/der.png)
 
 ## 📋 Matriz de Evidencias
 
